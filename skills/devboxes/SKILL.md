@@ -1,11 +1,11 @@
 ---
 name: devboxes
-description: Create, navigate, hydrate, and tear down Namespace devboxes - linux/amd64 VMs with Docker. Use whenever the user needs an isolated Linux sandbox, a remote dev environment, a Docker host, a cloud VM to run code or shell commands, or wants to spin up ephemeral machines to run a test suite (including sharding across multiple devboxes in parallel). Also triggers on the words "devbox", "Namespace devbox", or any ask for a disposable Linux/amd64 machine.
+description: Create, navigate, hydrate, and tear down Namespace devboxes - Linux/amd64 or macOS/arm64 remote development machines. Use whenever the user needs an isolated Linux or macOS environment, a remote dev environment, a Linux Docker host, a cloud machine to run code or shell commands, or wants to spin up ephemeral machines to run a test suite (including sharding across multiple devboxes in parallel). Also triggers on the words "devbox", "Namespace devbox", or any ask for a disposable Linux or macOS machine.
 ---
 
 # Namespace devboxes
 
-A Namespace devbox is a `linux/amd64` VM with Docker available. This skill describes the general building blocks for working with devboxes - creating them, transferring files, hydrating a workspace, installing toolchains, running commands with `devbox exec`, sharing web work with teammates through `devbox.so`, and managing the devbox lifecycle.
+Namespace devboxes are remote `linux/amd64` or `macos/arm64` machines. Linux devboxes have Docker available. This skill describes the general building blocks for working with devboxes - creating them, transferring files, hydrating a workspace, installing toolchains, running commands with `devbox exec`, sharing web work with teammates through `devbox.so`, and managing the devbox lifecycle.
 
 Throughout this skill:
 
@@ -18,19 +18,22 @@ For run-once-then-destroy workflows (single-script or test runs, optional shardi
 
 ## 1. Create a devbox
 
-If available, pick a base image that already includes the project's toolchain (Go, Node, etc.) to avoid reinstalling dependencies on every run. Start by running `devbox image list -o json` to discover existing project images - if one fits, use it. For simpler cases, fall back to `builtin:base` and install dependencies directly.
+If available, pick an image for the requested platform that already includes the project's toolchain (Go, Node, Xcode, etc.) to avoid reinstalling dependencies on every run. Start by running `devbox image list -o json` to discover existing project images - if one fits, use it. For simpler Linux cases, fall back to `builtin:base` and install dependencies directly.
 
-**Important** Pass the short `name` field from `devbox image list -o json` to `--image` (e.g. `<org>/<image>` or `builtin:base`), not the full `repository` URL - full references typically fail.
+**Important** Pass the short `name` field from `devbox image list -o json` to `--image` (e.g. `<org>/<image>` or `builtin:base`), not the full `repository` URL - full references typically fail. Ensure the image matches the requested platform.
 
 ```bash
 devbox create \
   --name <name> \
+  [--platform <linux/amd64|macos/arm64>] \
   --image <image> \
   --size <size> \
   [--ephemeral] \
   [--checkout <repo-url>] \
   --purpose "<purpose>"
 ```
+
+Linux/amd64 is the default when `--platform` is omitted. Pass `--platform macos/arm64` when the task requires macOS or Apple Silicon.
 
 Add `--ephemeral` when the devbox does not need to persist after a task is complete; omit it when persistence is required.
 
@@ -44,7 +47,7 @@ Add `--ephemeral` when the devbox does not need to persist after a task is compl
 
 **Important (case-sensitive org slug)** The Namespace association lookup is case-sensitive on the GitHub org/owner segment of `--checkout`. Use the org/owner casing EXACTLY as it appears in the repo URL the user gave you (or as returned by `git remote -v`). NEVER try alternative casings (e.g. lowercasing the org) as a "fix" when checkout fails.
 
-Sizes: `s` (4 vCPU / 8 GB), `m` (8 vCPU / 16 GB), `l` (16 vCPU / 32 GB), `xl` (32 vCPU / 64 GB). Use `s` only for narrow commands or small targeted workloads; prefer bigger when the workload has large dependencies or builds multiple packages, to avoid OOM. If a process is killed with `signal: killed`, upgrade to a larger size and retry.
+Linux sizes: `s` (4 vCPU / 8 GB), `m` (8 vCPU / 16 GB), `l` (16 vCPU / 32 GB), `xl` (32 vCPU / 64 GB). macOS sizes: `m` (6 vCPU / 14 GB) and `l` (12 vCPU / 28 GB). Use the smallest size only for narrow commands or small targeted workloads; prefer bigger when the workload has large dependencies or builds multiple packages, to avoid OOM. If a process is killed with `signal: killed`, upgrade to a larger size and retry.
 
 **Overlap creation with local prep** `devbox create` blocks until the machine is ready, which takes tens of seconds. Use that time: run `devbox create` as a background task, then immediately compute any local git diff and write the setup and run scripts locally. Once creation completes, upload and execute. This eliminates idle waiting.
 
@@ -113,9 +116,9 @@ git ls-files --others --exclude-standard | \
 
 If a tool is missing, install only what the workload needs.
 
-**Important** Check `--version` or `command -v` for each required tool first - it may already be present. `builtin:base` provides some languages (e.g. Go) via an on-demand shim that installs on first use; try the command before manually installing.
+**Important** Check `--version` or `command -v` for each required tool first - it may already be present. On Linux, `builtin:base` provides some languages (e.g. Go) via an on-demand shim that installs on first use; try the command before manually installing.
 
-**Important** For every CLI tool the script uses, check if it exists first and install only if missing:
+**Important** For every CLI tool the script uses, check if it exists first and install only if missing. Use platform-appropriate installers and artifacts. For example, on Linux/amd64:
 
 ```bash
 devbox exec <name> -- apt-get install -y --no-install-recommends \
@@ -186,7 +189,7 @@ For test-runner-specific guidance (sharding, parallel runs, the hydrate-and-test
 ## 4. Lifecycle
 
 ```bash
-devbox create --name <name> --image <image> --size <size> [--ephemeral] [--checkout <repo-url>] --purpose "<purpose>"
+devbox create --name <name> [--platform <linux/amd64|macos/arm64>] --image <image> --size <size> [--ephemeral] [--checkout <repo-url>] --purpose "<purpose>"
 devbox exec <name> -- <cmd>
 devbox exec -d <name> -- <cmd>                                     # run in the background and print an exec ID
 devbox logs <name> <exec-id>                                       # stream retained and live output

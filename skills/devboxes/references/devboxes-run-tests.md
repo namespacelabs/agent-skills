@@ -25,13 +25,14 @@ Run `devbox ssh` invocations against different devboxes in parallel - do NOT ser
 
 ## Hydrate-and-test recipe
 
-Concrete end-to-end example for a Go suite. Adapt the toolchain install and the test command for other languages.
+Concrete end-to-end example for a Go suite on Linux/amd64. Adapt the platform, image, toolchain install, and test command for other environments.
 
 ```bash
 NAME=test-$(date +%s)
 
 devbox create \
   --name "$NAME" \
+  --platform linux/amd64 \
   --image builtin:base \
   --size <size> \
   --ephemeral \
