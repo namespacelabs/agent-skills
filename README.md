@@ -19,3 +19,4 @@ npx skills add namespacelabs/agent-skills --skill devboxes
 | Skill | Use case |
 |---|---|
 | `devboxes` | Spin up devboxes to run commands or workloads (incl. test suites - see `references/devboxes-run-tests.md`) |
+| `hol-guard` | Protect state-changing Namespace workflows from a supported local coding-agent harness with HOL Guard |
