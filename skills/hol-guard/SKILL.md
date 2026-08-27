@@ -32,24 +32,22 @@ pipx install hol-guard
 Detect the supported local harness:
 
 ```bash
+hol-guard status
 hol-guard detect --json
 ```
 
 Use the harness identifier returned by detection. Do not guess adapter names.
 
-Install protection for that harness:
+Bootstrap Guard, install protection for that harness, and verify the protected launch path before state-changing Namespace work:
 
 ```bash
+hol-guard bootstrap
 hol-guard install <detected-harness>
+hol-guard run <detected-harness> --dry-run
+hol-guard doctor <detected-harness> --json
 ```
 
-Verify protection before state-changing Namespace work:
-
-```bash
-hol-guard doctor
-```
-
-Start the coding-agent session through HOL Guard:
+Start the coding-agent session through HOL Guard only after those checks succeed:
 
 ```bash
 hol-guard run <detected-harness>
@@ -88,8 +86,10 @@ Do not silently fall back to unprotected execution for a state-changing Namespac
 Stop and repair protection when:
 
 - `hol-guard detect --json` cannot identify a supported harness
+- `hol-guard bootstrap` fails
 - `hol-guard install <detected-harness>` fails
-- `hol-guard doctor` reports an unhealthy required protection state
+- the Guard dry-run fails
+- `hol-guard doctor <detected-harness> --json` reports an unhealthy required protection state
 - a Guard decision denies or requires review
 - the protected harness cannot start or exits unexpectedly
 
