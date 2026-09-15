@@ -16,6 +16,38 @@ The devbox may be long-lived, reused across tasks, or torn down immediately depe
 
 For run-once-then-destroy workflows (single-script or test runs, optional sharding), see [references/devboxes-run-tests.md](references/devboxes-run-tests.md).
 
+## Install or update the Devbox CLI
+
+To install the Devbox CLI, use the command for the local operating system:
+
+**macOS or Linux:**
+
+```bash
+curl -fsSL get.namespace.so/devbox/install.sh | bash
+```
+
+**Windows (PowerShell):**
+
+```powershell
+irm https://get.namespace.so/devbox/install.ps1 | iex
+```
+
+On Windows, restart the terminal if `devbox` is not available on `PATH` after installation. Run `devbox version` to verify the installation.
+
+To update an installed Devbox CLI to the latest release, run:
+
+```bash
+devbox update
+```
+
+Run `devbox version` afterward to confirm the updated version.
+
+### If Devbox CLI is unavailable
+
+If a required `devbox` command fails because the shell reports that `devbox` is unavailable (for example, `command not found` or `not recognized`), recommend installing the CLI as described above. After installation, verify it with `devbox version` and retry the original command.
+
+Reference: [Devbox CLI installation and update documentation](https://namespace.so/docs/reference/devbox-cli/installation.md)
+
 ## 1. Create a devbox
 
 If available, pick an image for the requested platform that already includes the project's toolchain (Go, Node, Xcode, etc.) to avoid reinstalling dependencies on every run. Start by running `devbox image list -o json` to discover existing project images - if one fits, use it. For simpler Linux cases, fall back to `builtin:base` and install dependencies directly.
