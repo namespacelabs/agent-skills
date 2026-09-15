@@ -34,6 +34,35 @@ irm https://get.namespace.so/devbox/install.ps1 | iex
 
 On Windows, restart the terminal if `devbox` is not available on `PATH` after installation. Run `devbox version` to verify the installation.
 
+### Log in
+
+After installing the CLI, run `devbox login` as a long-running command. It opens the login URL in the user's default browser and prints the URL and verification code:
+
+```bash
+devbox login
+```
+
+Example output:
+
+```text
+Please complete the login flow in your browser.
+
+https://cloud.namespace.so/login/workspace?id=9l2drnfnt50chd7c119gtb2o48&code=A1B2-C3D4
+Verification code: A1B2-C3D4
+```
+
+Tell the user to complete the flow in the browser. The agent cannot complete this browser step. Do not ask the user to confirm when they are done; keep waiting for the `devbox login` process, which returns on its own after authentication completes.
+
+Then verify that the credentials are valid:
+
+```bash
+devbox auth check-login
+```
+
+`check-login` returns a non-zero exit status when credentials are missing or invalid, making it reliable for agent workflows.
+
+### Update the CLI
+
 To update an installed Devbox CLI to the latest release, run:
 
 ```bash
@@ -42,11 +71,18 @@ devbox update
 
 Run `devbox version` afterward to confirm the updated version.
 
+### Switch Devbox workspaces
+
+Run `devbox login` to switch the Devbox CLI to a different Namespace workspace. Let the user complete the browser flow, wait for the command to return on its own, then verify the new login with `devbox auth check-login`.
+
 ### If Devbox CLI is unavailable
 
 If a required `devbox` command fails because the shell reports that `devbox` is unavailable (for example, `command not found` or `not recognized`), recommend installing the CLI as described above. After installation, verify it with `devbox version` and retry the original command.
 
-Reference: [Devbox CLI installation and update documentation](https://namespace.so/docs/reference/devbox-cli/installation.md)
+References:
+
+- [Devbox CLI installation and update documentation](https://namespace.so/docs/reference/devbox-cli/installation.md)
+- [`devbox login` documentation](https://namespace.so/docs/reference/devbox-cli/auth.md)
 
 ## 1. Create a devbox
 
