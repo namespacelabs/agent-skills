@@ -1,6 +1,6 @@
 ---
 name: devboxes
-description: Create, navigate, hydrate, and tear down Namespace devboxes - Linux/amd64 or macOS/arm64 remote development machines. Use whenever the user needs an isolated Linux or macOS environment, a remote dev environment, a Linux Docker host, a cloud machine to run code or shell commands, or wants to spin up ephemeral machines to run a test suite (including sharding across multiple devboxes in parallel). Also triggers on the words "devbox", "Namespace devbox", or any ask for a disposable Linux or macOS machine.
+description: Create, run commands on, share and tear down Namespace devboxes - remote linux/amd64 or macos/arm64 machines driven by the `devbox` CLI. Use for an isolated Linux or macOS environment, a remote dev environment, a disposable Linux Docker host, running more than the local machine can handle (including test suites sharded across several devboxes in parallel), or exposing a `devbox.so` URL so a teammate can open the work in their browser.
 ---
 
 # Namespace devboxes
@@ -16,9 +16,13 @@ The devbox may be long-lived, reused across tasks, or torn down immediately depe
 
 For run-once-then-destroy workflows (single-script or test runs, optional sharding), see [references/devboxes-run-tests.md](references/devboxes-run-tests.md).
 
+**Preflight** Everything here assumes the `devbox` CLI is installed and authenticated. `devbox auth check-login` exits non-zero when credentials are missing or expired - and Namespace sessions do expire, so a machine that worked last week can fail today with nothing else changed. If that check fails, or the shell reports `devbox` is unavailable, STOP and hand it to the user - installing the CLI and completing the browser login are both theirs to run, not yours. See [references/devboxes-cli-setup.md](references/devboxes-cli-setup.md) for the commands to give them, and for updating the CLI or switching workspace. Do not try to mint or borrow credentials from other tooling to work around it.
+
 ## 1. Create a devbox
 
-If available, pick an image for the requested platform that already includes the project's toolchain (Go, Node, Xcode, etc.) to avoid reinstalling dependencies on every run. Start by running `devbox image list -o json` to discover existing project images - if one fits, use it. For simpler Linux cases, fall back to `builtin:base` and install dependencies directly.
+If the task needs a project toolchain (Go, Node, Xcode, etc.), pick an image that already includes it to avoid reinstalling dependencies on every run: run `devbox image list -o json` ONCE to discover existing project images, and use one if it fits. Cache that result - repeating the call does not tell you anything new.
+
+Skip image discovery entirely for scratch work that needs no project toolchain (a one-off command, a throwaway VM, a quick platform check) and go straight to `builtin:base`. On Linux, `builtin:base` already ships common toolchains - Go, for instance - so for many tasks it is the whole answer. For simpler Linux cases generally, fall back to `builtin:base` and install dependencies directly.
 
 **Important** Pass the short `name` field from `devbox image list -o json` to `--image` (e.g. `<org>/<image>` or `builtin:base`), not the full `repository` URL - full references typically fail. Ensure the image matches the requested platform.
 
@@ -67,6 +71,7 @@ devbox download <name> <remote-path> <local-path>
 - `<remote-path>` MUST be a full file path. A trailing `/` fails.
 - `--mkdir` creates missing parent directories; it does NOT make the target a directory.
 - The executable bit is NOT preserved. Run `chmod +x` with `devbox exec` after uploading scripts.
+- **Write under `/workspaces` or `$HOME`.** The remote user is unprivileged (`devbox`, uid 1001), not root, so an upload to a system path fails on the parent directory - `mkdir: cannot create directory '/srv/www': Permission denied` - and `--mkdir` cannot rescue it, because the problem is permission, not absence. Serving a page? `/workspaces/<name>/` is the natural home, not `/srv` or `/var/www`.
 
 ### Hydrate the workspace
 
@@ -76,30 +81,46 @@ Namespace devboxes configured with a repo in the UI auto-clone it to `/workspace
 devbox exec <name> -- ls /workspaces/
 ```
 
-If the repo is already present, use that path directly. The auto-cloned repo reflects the default branch. When a repository is checked out (auto-cloned or via `--checkout`), align it to the same commit as your local working tree and apply any uncommitted local changes on top.
+If the repo is already present, use that path directly. The auto-cloned repo reflects the default branch, so it does NOT have your local work on it - you must get that across before running anything.
 
-**Important (local uncommitted changes)** Devbox clones the default branch - diff and checkout must use the same commit or unrelated files get clobbered.
+**Pick the cheapest sync that covers your files.** Two approaches, and the simple one is usually right:
+
+**(a) Default: ship the working tree.** For a small or medium repo, copy the files as they are on disk. This captures tracked edits and untracked files in one step, needs no reasoning about commits or bases, and cannot silently omit anything. Upload a handful of files directly, or tar the tree for more:
+
+```bash
+# A few files - upload them directly.
+devbox upload <name> ./calc.go /workspaces/<repo-name>/calc.go --mkdir
+
+# More than a handful - tar the tree, excluding .git and build output.
+tar --exclude .git -czf /tmp/tree.tgz -C <repo-root> .
+devbox upload <name> /tmp/tree.tgz /tmp/tree.tgz
+devbox exec   <name> -- mkdir -p /workspaces/<repo-name>
+devbox exec   <name> -- tar -xzf /tmp/tree.tgz -C /workspaces/<repo-name>
+```
+
+**(b) Large repo: align the commit, then patch.** Once the tree is big enough that copying it is slower than cloning it, let the devbox's own clone do the heavy lifting and send only a diff. This is strictly more machinery, so reach for it only when (a) is genuinely too slow.
+
+**Important** The devbox clone is on the default branch, so the diff and the checkout MUST name the same commit or unrelated files get clobbered:
 
 ```bash
 BASE=$(git merge-base origin/main HEAD)
 git diff "$BASE" > /tmp/changes.patch   # add --binary if the diff touches generated/binary files
 
-# Run each command separately - do NOT chain with && via `bash -c`.
-# For git, use `git -C <path>` instead of `cd <path> && git ...`.
+# For git, prefer `git -C <path>` over `cd <path> && git ...` - no cwd to get wrong.
 devbox exec   <name> -- git -C /workspaces/<repo-name> fetch --depth=1 origin "$BASE"
 devbox exec   <name> -- git -C /workspaces/<repo-name> checkout "$BASE"
 devbox upload <name> /tmp/changes.patch /tmp/changes.patch
 devbox exec   <name> -- git -C /workspaces/<repo-name> apply /tmp/changes.patch
 devbox exec   <name> -- git -C /workspaces/<repo-name> status --short
-
-# When multiple steps must share state that cannot be expressed as a single command
-# (e.g. exported env vars, multi-line logic), write a script, upload it, then run it:
-#   devbox upload <name> /tmp/apply.sh /tmp/apply.sh
-#   devbox exec   <name> -- chmod +x /tmp/apply.sh
-#   devbox exec   <name> -- bash /tmp/apply.sh
 ```
 
-**Important** `git diff` only covers tracked files. For untracked files, upload them directly with devbox upload, bundle a few into a tarball, or rsync them if there are many.
+**Important (the failure mode that makes (b) risky)** `git diff` only covers TRACKED files. A brand-new file you have not `git add`ed is invisible to it, so a patch-based sync will quietly leave it behind - and if that file is a new test, you will confidently report a result from code that was never there. Requirement (b) is therefore incomplete on its own: send untracked files too.
+
+```bash
+git ls-files --others --exclude-standard    # exactly what a patch will MISS
+```
+
+Upload those directly, add them to the tarball, or rsync them if there are many:
 
 ```bash
 # for rsync - configure native ssh
@@ -112,11 +133,31 @@ git ls-files --others --exclude-standard | \
   <name>.devbox.namespace:/workspaces/<repo-name>/
 ```
 
+**Verify before you trust a result.** Confirm the files you meant to send are actually there, so a sync gap surfaces now rather than as a wrong answer later:
+
+```bash
+devbox exec <name> -- ls -la /workspaces/<repo-name>
+```
+
+If the repo has no remote at all (a scratch or local-only repo), (b) is not available - use (a).
+
 ### Install toolchains
 
 If a tool is missing, install only what the workload needs.
 
-**Important** Check `--version` or `command -v` for each required tool first - it may already be present. On Linux, `builtin:base` provides some languages (e.g. Go) via an on-demand shim that installs on first use; try the command before manually installing.
+**Important** Check whether a tool is already present before installing it - `builtin:base` ships more than you might expect. On Linux it also provides some languages (e.g. Go) via an on-demand shim that installs on first use, so the first invocation may pause rather than fail; try the command before reaching for a manual install.
+
+Probe with the tool's own flag, which is a real executable:
+
+```bash
+devbox exec <name> -- go version
+```
+
+`command -v` will NOT work this way. It is a shell builtin, and `devbox exec` runs the command directly with no shell, so `devbox exec <name> -- command -v go` fails with `exec: "command": executable file not found in $PATH` - which looks like the tool is missing when it is not. If you want `command -v`, give it a shell:
+
+```bash
+devbox exec <name> -- bash -lc 'command -v go >/dev/null && go version || echo MISSING_GO'
+```
 
 **Important** For every CLI tool the script uses, check if it exists first and install only if missing. Use platform-appropriate installers and artifacts. For example, on Linux/amd64:
 
@@ -139,7 +180,25 @@ devbox exec <name> -- <cmd> <args...>
 **Alternative: native ssh** If a workflow uses a tool, which relies on standard SSH tooling (`scp`, `rsync`, etc.), run `devbox configure-ssh <name>` once to write an entry into your `~/.ssh/config`. After that, the devbox is reachable as `<name>.devbox.namespace`. Prefer `devbox exec` for commands; reach for native ssh when you specifically need standard tooling.
 
 
-**Important** `devbox exec` runs a command directly without a shell. Run one command per invocation; shell operators such as `&&`, redirections, and variable expansion are not interpreted. For anything beyond a single command, write the script to a file, `devbox upload` it, then run `devbox exec <name> -- bash /tmp/script.sh`.
+**Important (exec does not give you a shell - but you can ask for one)** `devbox exec` runs the command directly, so shell operators such as `&&`, `;`, redirections and variable expansion are NOT interpreted by default. `devbox exec <name> -- cd /src && make` will not do what you want.
+
+Two ways to get multi-step work done, and they trade off differently:
+
+**Short multi-step work - invoke a shell explicitly.** One round trip, and a mistake costs one re-run:
+
+```bash
+devbox exec <name> -- bash -lc 'cd /workspaces/<repo-name> && go build ./... && go test ./...'
+```
+
+**Longer or reusable logic - upload a script.** Worth the extra round trips (`upload`, `chmod`, run) when the logic is long, needs careful quoting, or you want the exact steps recorded on the machine. Note that a bug in the script costs a re-upload AND a re-`chmod`, so prefer `bash -lc` while you are still iterating:
+
+```bash
+devbox upload <name> /tmp/script.sh /tmp/script.sh
+devbox exec   <name> -- chmod +x /tmp/script.sh
+devbox exec   <name> -- bash /tmp/script.sh
+```
+
+Quoting is the thing to watch with `bash -lc`: wrap the whole program in single quotes and let the remote shell expand `$VARS`, or they will expand locally before the command ever leaves your machine.
 
 ### Detached commands and retained logs
 
@@ -227,6 +286,18 @@ devbox url access my-box --mode workspace -o json
 **Important** `devbox url expose ... --access <mode>` changes this same Devbox-wide setting while exposing a port. It affects every existing and future exposed URL on that devbox; it does not set access only for the new URL. Per-URL access modes are not supported. If URLs need different audiences, ask before changing access or use a separate devbox.
 
 **Share web work with teammates** When the user intends work running in a devbox to be reviewable by teammates, expose its port with `--access workspace` and return the resulting `devbox.so` URL. The URL remains available after the command exits. Pass `--name` when the port's purpose is known so the URL is easier to retrieve and remove later. Prefer JSON output for agent workflows.
+
+**Important (how to verify an exposed URL - and how not to)** A successful `devbox url expose` that returns a URL IS your confirmation. Stop there and hand the URL to the user.
+
+Do NOT try to fetch the URL to "prove" it works. `devbox.so` URLs are gated on a signed-in user session, which you do not have and cannot mint - `curl` will return `401 unauthorized`, and no API or ID token will change that. That `401` is not a failure and not evidence of anything you need. Chasing a `200` is the single most expensive dead end in this skill: it burns minutes on token endpoints and SSH tunnels to re-confirm a fact the CLI already gave you.
+
+If you want to confirm the *server* is actually up before sharing, check it from inside the devbox, where no gateway auth applies:
+
+```bash
+devbox exec <name> -- curl -sS -o /dev/null -w '%{http_code}\n' http://127.0.0.1:<port>/
+```
+
+Bind servers to `0.0.0.0`, not `127.0.0.1`, or the `devbox.so` proxy cannot reach them.
 
 ```bash
 devbox url expose my-box --port 3000 --name web --access workspace -o json
