@@ -15,7 +15,7 @@ Test runs are fire-once-and-tear-down: each devbox exists to execute a single su
 
 **Important** Default to splitting the test suite across multiple devboxes created simultaneously. Before deciding on the devbox count, count work units per planned shard (test files, packages, or equivalent for the language) and verify they are roughly equal - **not lines of code**, which are a poor proxy. Justify. Only use a single devbox if the repo is clearly small and single-purpose. Reason the chosen count of devboxes.
 
-Run `devbox ssh` invocations against different devboxes in parallel - do NOT serialize independent shards.
+Run `devbox exec` invocations against different devboxes in parallel - do NOT serialize independent shards.
 
 ## Test runner notes
 
@@ -40,11 +40,15 @@ devbox create \
   --purpose "<purpose>"
 
 # Check if the repo was auto-cloned by Namespace (configured repos land at /workspaces/<repo-name>)
-devbox ssh "$NAME" -- ls /workspaces/
+devbox exec "$NAME" -- ls /workspaces/
 
-# Install toolchain if not found
-devbox ssh "$NAME" -- curl -fsSL -o /tmp/go.tgz https://go.dev/dl/go<version>.linux-amd64.tar.gz
-devbox ssh "$NAME" -- tar -xzf /tmp/go.tgz -C /usr/local
+# Check for the toolchain BEFORE installing - builtin:base already ships Go (and other
+# common languages), so this is usually a no-op that saves a download and an untar.
+devbox exec "$NAME" -- bash -lc 'go version || echo NEEDS_GO'
+
+# ONLY if the check reported NEEDS_GO:
+# devbox exec "$NAME" -- curl -fsSL -o /tmp/go.tgz https://go.dev/dl/go<version>.linux-amd64.tar.gz
+# devbox exec "$NAME" -- tar -xzf /tmp/go.tgz -C /usr/local
 
 cat > /tmp/run.sh <<'EOF'
 #!/bin/bash
@@ -61,8 +65,8 @@ echo "exit=$status log=$LOG bytes=$(wc -c <"$LOG")"
 exit "$status"
 EOF
 devbox upload "$NAME" /tmp/run.sh /tmp/run.sh
-devbox ssh    "$NAME" -- chmod +x /tmp/run.sh
-devbox ssh    "$NAME" -- bash /tmp/run.sh
+devbox exec   "$NAME" -- chmod +x /tmp/run.sh
+devbox exec   "$NAME" -- bash /tmp/run.sh
 
 # Only download the full log if the summary above shows a non-zero exit.
 # devbox download "$NAME" /workspaces/run.log /tmp/run.log
