@@ -16,7 +16,7 @@ The devbox may be long-lived, reused across tasks, or torn down immediately depe
 
 For run-once-then-destroy workflows (single-script or test runs, optional sharding), see [references/devboxes-run-tests.md](references/devboxes-run-tests.md).
 
-**Preflight** Everything here assumes the `devbox` CLI is installed and authenticated. `devbox auth check-login` exits non-zero when credentials are missing or expired - and Namespace sessions do expire, so a machine that worked last week can fail today with nothing else changed. If that check fails, or the shell reports `devbox` is unavailable, STOP and hand it to the user - installing the CLI and completing the browser login are both theirs to run, not yours. See [references/devboxes-cli-setup.md](references/devboxes-cli-setup.md) for the commands to give them, and for updating the CLI or switching workspace. Do not try to mint or borrow credentials from other tooling to work around it.
+**Preflight** Resolve `devbox` from PATH or its platform's default install location; use the absolute path if PATH is stale, and install the Devbox CLI yourself only if it is absent. Run the resolved CLI's `auth check-login`; if login is required, run `devbox login`, let the user complete the browser flow, and wait for the command to return. See [references/devboxes-cli-setup.md](references/devboxes-cli-setup.md) for exact steps, including session expiry and workspace switching. Do not try to mint or borrow credentials from other tooling.
 
 ## 1. Create a devbox
 
