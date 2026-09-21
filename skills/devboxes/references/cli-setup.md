@@ -4,6 +4,18 @@ Prerequisites for everything in [../SKILL.md](../SKILL.md). Read this only when 
 preflight in SKILL.md fails - that is, when `devbox` is not on PATH, or
 `devbox auth check-login` exits non-zero. During normal operation none of this is needed.
 
+**Important (none of this applies inside a devbox)** If `NAMESPACE_DEVBOX_WORKSPACE_DIR` is set
+you are running INSIDE a devbox, where the `devbox` CLI is already installed at
+`~/.devbox/bin/devbox` *and already authenticated* by a workload credential. Nothing on this page
+applies: do not resolve, install, update, or log it in.
+
+Be especially wary of `devbox auth check-login` there. It reports "Not logged in" even though the
+CLI works, because it describes user/OAuth state and knows nothing about the workload credential.
+Acting on that failure leads into a browser login flow you cannot complete, on a machine that
+never needed one - just run the command you wanted instead. See
+[inside-a-devbox.md](inside-a-devbox.md) for what the workload credential can and cannot do, and
+for `boxctl`, which is the better tool for the devbox you are on.
+
 ## Resolve the executable
 
 Do not assume the Devbox CLI is absent merely because `devbox` is not on the current
