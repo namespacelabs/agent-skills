@@ -1,6 +1,6 @@
 ---
 name: devboxes
-description: Create, run commands on, share and tear down Namespace devboxes - remote linux/amd64 or macos/arm64 machines driven by the `devbox` CLI. Use for an isolated Linux or macOS environment, a remote dev environment, a disposable Linux Docker host, running more than the local machine can handle (including test suites sharded across several devboxes in parallel), or exposing a `devbox.so` URL so a teammate can open the work in their browser.
+description: Creates, runs, shares, and tears down Namespace devboxes with `devbox` or `boxctl`. Use for isolated Linux or macOS environments, remote builds or tests, disposable Docker hosts, workloads exceeding local capacity, exposing `devbox.so` URLs, or working inside a devbox (`NAMESPACE_DEVBOX_WORKSPACE_DIR` is set), including keeping unattended work alive with task markers.
 ---
 
 # Namespace devboxes
@@ -14,9 +14,33 @@ Throughout this skill:
 
 The devbox may be long-lived, reused across tasks, or torn down immediately depending on the caller's intent. Pass `--ephemeral` at creation time to mark it as disposable.
 
-For run-once-then-destroy workflows (single-script or test runs, optional sharding), see [references/devboxes-run-tests.md](references/devboxes-run-tests.md).
+For run-once-then-destroy workflows (single-script or test runs, optional sharding), see [references/run-tests.md](references/run-tests.md).
 
-**Preflight** Resolve `devbox` from PATH or its platform's default install location; use the absolute path if PATH is stale, and install the Devbox CLI yourself only if it is absent. Run the resolved CLI's `auth check-login`; if login is required, run `devbox login`, let the user complete the browser flow, and wait for the command to return. See [references/devboxes-cli-setup.md](references/devboxes-cli-setup.md) for exact steps, including session expiry and workspace switching. Do not try to mint or borrow credentials from other tooling.
+## 0. Establish where you are running
+
+Everything below assumes you are driving a devbox from somewhere else. First check whether you
+are already ON one - the tooling and the auth story are different:
+
+```bash
+[ -n "${NAMESPACE_DEVBOX_WORKSPACE_DIR:-}" ] && echo "on a devbox"
+```
+
+The Devbox agent injects that variable into every process on the machine, so it is a reliable
+one-line check. If it is set, read [references/inside-a-devbox.md](references/inside-a-devbox.md)
+before doing anything else. Two things are different there:
+
+- **Ordinary commands need no wrapper.** You are on the machine. Run `go test`, `git` and file
+  edits directly, and skip the `devbox` preflight below for work scoped to the devbox you are in.
+- **Both CLIs are already usable - do not run `devbox login`.** `boxctl` and `devbox` both ship in
+  `~/.devbox/bin`. The `devbox` CLI is authenticated by a *workload* credential, which acts as the
+  tenant rather than as a person: it can drive workspace-access devboxes, but not ones private to
+  their creator - including, usually, the machine you are on. That is why `boxctl`, which reaches
+  the local agent over a socket and needs no credential, is the tool for the current devbox rather
+  than merely the quicker one. Beware `devbox auth check-login` here: it reports "Not logged in"
+  even while the CLI works, and acting on that leads to a browser login flow you cannot complete.
+  The reference covers the rest, including `--access_mode workspace` for creating sibling boxes.
+
+**Preflight** Resolve `devbox` from PATH or its platform's default install location; use the absolute path if PATH is stale, and install the Devbox CLI yourself only if it is absent. Run the resolved CLI's `auth check-login`; if login is required, run `devbox login`, let the user complete the browser flow, and wait for the command to return. See [references/cli-setup.md](references/cli-setup.md) for exact steps, including session expiry and workspace switching. Do not try to mint or borrow credentials from other tooling.
 
 ## 1. Create a devbox
 
@@ -57,7 +81,7 @@ Linux sizes: `s` (4 vCPU / 8 GB), `m` (8 vCPU / 16 GB), `l` (16 vCPU / 32 GB), `
 
 **Note** Devbox creation might fail due to Namespace plan limits on resource tiers or instance counts. If this happens: **PROMPT THE USER BEFORE PROCEEDING** run `devbox list` and ask to expire or reuse any of the available devboxes, then retry; As a last resort, consolidate work across fewer devboxes rather than blocking.
 
-For test or script runs that benefit from sharding across multiple devboxes, see [references/devboxes-run-tests.md](references/devboxes-run-tests.md).
+For test or script runs that benefit from sharding across multiple devboxes, see [references/run-tests.md](references/run-tests.md).
 
 ## 2. Hydrate the workspace and install toolchains
 
@@ -243,7 +267,7 @@ devbox exec   <name> -- bash /tmp/run.sh
 
 **Note** Capture the workload's exit code (`status=0; cmd || status=$?`) before printing the summary. Use `devbox download` only for devboxes whose summary reported a non-zero exit, unless specified otherwise.
 
-For test-runner-specific guidance (sharding, parallel runs, the hydrate-and-test recipe, result reporting), see [references/devboxes-run-tests.md](references/devboxes-run-tests.md).
+For test-runner-specific guidance (sharding, parallel runs, the hydrate-and-test recipe, result reporting), see [references/run-tests.md](references/run-tests.md).
 
 ## 4. Lifecycle
 
@@ -264,8 +288,40 @@ devbox url get <name> (--port <port> | --name <purpose>) -o json   # retrieve an
 devbox url list <name> -o json                                     # list exposed URLs
 devbox url unexpose <name> (--port <port> | --name <purpose>)      # remove an exposed URL
 devbox port-forward <name> --ports <local:remote,...>              # forward devbox ports to localhost (e.g. a dev server or DB)
+devbox shutdown <name>                                             # stop a devbox without destroying it
 devbox expire <name> --force                                       # tear down a devbox
 ```
+
+### Keep a devbox alive through long-running work
+
+A devbox with an idle timeout auto-stops when nothing on it looks busy. The Devbox agent treats a
+running `devbox exec` or SSH command as busy for its whole runtime. Creating or connecting to a
+terminal session and receiving HTTP responses through an exposed `devbox.so` URL count only as
+recent activity for a bounded period. Work not covered by an active exec or SSH command needs an
+explicit marker:
+
+```bash
+devbox exec <name> -- boxctl task mark <task>          # hold the devbox busy
+devbox exec <name> -- boxctl task clear-mark <task>    # release it
+devbox exec <name> -- boxctl task list                 # what is currently holding it
+```
+
+`boxctl` is pre-installed on every devbox, so this works from your machine without installing
+anything on the box. From inside a devbox, drop the `devbox exec <name> --` prefix.
+
+Mark anything that will run unattended outside an active `devbox exec` or SSH command: an
+overnight job started in a terminal session, a migration, a queue worker, or a dev server nobody
+is hitting yet. A foreground or detached `devbox exec` needs no marker while its command is still
+running. Without either form of activity the machine can stop mid-task and take the work with it.
+
+**Important** Markers have no TTL and nothing cleans them up. One left behind holds the devbox
+awake and billed indefinitely, defeating the idle timeout entirely - so always pair a mark with
+the matching `clear-mark`, on failure paths too. Both commands are idempotent and exit 0 when
+the marker already exists or is already gone, which makes them safe in traps and retries. See
+[references/inside-a-devbox.md](references/inside-a-devbox.md) for the trap pattern.
+
+A marker only holds off the *idle* timeout. `devbox shutdown` and `devbox expire` still stop the
+machine regardless.
 
 **Important** These `devbox url` commands require devbox CLI v0.0.182 or newer. Check with `devbox version`; if the installed version is older, run `devbox update` before using them.
 
@@ -312,6 +368,6 @@ devbox url expose my-box --port 3000 --name web -o json
 
 For local-only access or non-web services, use `devbox port-forward`. Example: `devbox port-forward my-box --ports 3000:3000,5432:5432` maps ports to `localhost:3000` and `localhost:5432`. The command blocks the terminal until Ctrl+C, so run it in a dedicated terminal or as a background process.
 
-Whether and when to call `devbox expire` depends on the caller's intent - the test-suite workflow in [references/devboxes-run-tests.md](references/devboxes-run-tests.md) tears down at the end; other use cases may keep the devbox alive.
+Whether and when to call `devbox expire` depends on the caller's intent - the test-suite workflow in [references/run-tests.md](references/run-tests.md) tears down at the end; other use cases may keep the devbox alive.
 
 **Important** On failure caused by missing dependencies, install them and retry the failing command. Do the same for any uploaded scripts.

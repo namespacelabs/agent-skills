@@ -18,4 +18,4 @@ npx skills add namespacelabs/agent-skills --skill devboxes
 
 | Skill | Use case |
 |---|---|
-| `devboxes` | Spin up devboxes to run commands or workloads. References: `devboxes-cli-setup.md` (install the CLI, log in), `devboxes-run-tests.md` (test suites, sharding) |
+| `devboxes` | Spin up devboxes to run commands or workloads. References: `cli-setup.md` (install the CLI, log in), `run-tests.md` (test suites, sharding), `inside-a-devbox.md` (running inside a devbox: `boxctl`, task markers) |
