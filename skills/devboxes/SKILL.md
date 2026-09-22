@@ -46,9 +46,9 @@ before doing anything else. Two things are different there:
 
 If the task needs a project toolchain (Go, Node, Xcode, etc.), pick an image that already includes it to avoid reinstalling dependencies on every run: run `devbox image list -o json` ONCE to discover existing project images, and use one if it fits. Cache that result - repeating the call does not tell you anything new.
 
-Skip image discovery entirely for scratch work that needs no project toolchain (a one-off command, a throwaway VM, a quick platform check) and go straight to `builtin:base`. On Linux, `builtin:base` already ships common toolchains - Go, for instance - so for many tasks it is the whole answer. For simpler Linux cases generally, fall back to `builtin:base` and install dependencies directly.
+Skip image discovery entirely for scratch work that needs no project toolchain (a one-off command, a throwaway VM, a quick platform check) and go straight to `builtin:default`. On Linux, `builtin:default` already ships common toolchains - Go, for instance - so for many tasks it is the whole answer. For simpler Linux cases generally, fall back to `builtin:default` and install dependencies directly.
 
-**Important** Pass the short `name` field from `devbox image list -o json` to `--image` (e.g. `<org>/<image>` or `builtin:base`), not the full `repository` URL - full references typically fail. Ensure the image matches the requested platform.
+**Important** Pass the short `name` field from `devbox image list -o json` to `--image` (e.g. `<org>/<image>` or `builtin:default`), not the full `repository` URL - full references typically fail. Ensure the image matches the requested platform.
 
 ```bash
 devbox create \
@@ -169,7 +169,7 @@ If the repo has no remote at all (a scratch or local-only repo), (b) is not avai
 
 If a tool is missing, install only what the workload needs.
 
-**Important** Check whether a tool is already present before installing it - `builtin:base` ships more than you might expect. On Linux it also provides some languages (e.g. Go) via an on-demand shim that installs on first use, so the first invocation may pause rather than fail; try the command before reaching for a manual install.
+**Important** Check whether a tool is already present before installing it - on Linux, `builtin:default` ships more than you might expect, including languages such as Go. Try the command before reaching for a manual install.
 
 Probe with the tool's own flag, which is a real executable:
 
