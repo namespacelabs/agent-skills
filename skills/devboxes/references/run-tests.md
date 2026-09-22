@@ -33,7 +33,7 @@ NAME=test-$(date +%s)
 devbox create \
   --name "$NAME" \
   --platform linux/amd64 \
-  --image builtin:base \
+  --image builtin:default \
   --size <size> \
   --ephemeral \
   --checkout <repo-url> \
@@ -42,7 +42,7 @@ devbox create \
 # Check if the repo was auto-cloned by Namespace (configured repos land at /workspaces/<repo-name>)
 devbox exec "$NAME" -- ls /workspaces/
 
-# Check for the toolchain BEFORE installing - builtin:base already ships Go (and other
+# Check for the toolchain BEFORE installing - builtin:default already ships Go (and other
 # common languages), so this is usually a no-op that saves a download and an untar.
 devbox exec "$NAME" -- bash -lc 'go version || echo NEEDS_GO'
 

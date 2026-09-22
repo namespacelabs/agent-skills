@@ -79,7 +79,7 @@ devbox it is the *only* way to act on the machine you are on.
 
 Fanning work out to sibling devboxes therefore does work from inside one - test shards, say - and
 it composes: a box you create from here must be `--access_mode workspace`, which is exactly the
-kind the credential can then drive. Since `image list` is denied, pick `builtin:base` or another
+kind the credential can then drive. Since `image list` is denied, pick `builtin:default` or another
 image you already know rather than discovering one.
 
 `boxctl` remains the better tool for the devbox you are on: it talks to the local agent over a
