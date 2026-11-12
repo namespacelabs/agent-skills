@@ -19,3 +19,4 @@ npx skills add namespacelabs/agent-skills --skill devboxes
 | Skill | Use case |
 |---|---|
 | `devboxes` | Spin up devboxes to run commands or workloads. References: `cli-setup.md` (install the CLI, log in), `run-tests.md` (test suites, sharding), `inside-a-devbox.md` (running inside a devbox: `boxctl`, task markers) |
+| `optimizing-namespace-ci` | Investigate slow or costly GitHub Actions workflows using Namespace resource, cache, build and concurrency evidence; propose small, measurable changes without automatically changing shared profiles or running paid experiments. |
