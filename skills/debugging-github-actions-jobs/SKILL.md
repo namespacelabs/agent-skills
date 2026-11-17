@@ -28,7 +28,7 @@ Start from the job's conclusion and timestamps, then follow the matching row.
 | Timed out, or runs end at the same duration | Compare the duration with `timeout-minutes`. In `github_job_resource_usage_fetch`, flat low CPU over the stuck step suggests waiting (network, lock, prompt); saturated CPU suggests too much work for the shape. |
 | Slower than usual | Find comparable successful runs of the same repository, workflow, and job with `github_job_list`. Compare step durations and resource usage over the slow step: CPU, I/O wait, memory, storage. |
 | Docker build step failed or was slow | `build_list_by_origin` for the job, then `build_steps_get` and `build_step_logs_fetch` for the failing step. Remote builds run on separate machines; runner metrics do not describe them. |
-| Waited long before starting | Queue and start times from `github_job_describe`. Check that `runs-on` has exactly one valid `nscloud-` machine label or an existing `namespace-profile-` name. Otherwise the usual cause is workspace concurrency limits; see [Queue Time](https://namespace.so/docs/solutions/github-actions/debugging/queue-time). |
+| Waited long before starting | Queue and start times from `github_job_describe`. Read the workflow with `gh workflow view <workflow> --ref <branch> --yaml` and check that `runs-on` has exactly one valid `nscloud-` machine label or an existing `namespace-profile-` name. Otherwise the usual cause is workspace concurrency limits; see [Queue Time](https://namespace.so/docs/solutions/github-actions/debugging/queue-time). |
 | Cancelled | `gh run view <run-id>` shows whether a newer run in the same concurrency group, or a person, cancelled it. |
 
 Log regex for failed steps (RE2, case-insensitive):
@@ -39,9 +39,9 @@ Log regex for failed steps (RE2, case-insensitive):
 
 Interpretation limits:
 
-- Exit code 137 alone does not prove an out-of-memory kill. Confirm with OOM events or memory at the limit; otherwise report it as possible.
+- Exit code 137 alone does not prove an out-of-memory kill. Confirm with OOM events or memory at the limit; otherwise report it as possible. OOM events can be empty, and per-second memory samples can miss the final spike, so memory climbing toward the limit just before the kill makes it likely, not confirmed.
 - `cpu_max` is the busiest single vCPU and `cpu_avg` the average across vCPUs. One busy core does not mean the runner is saturated.
-- Retained step logs can be truncated or missing; that does not prove a step succeeded or did nothing. Use `gh run view <run-id> --log-failed` for complete logs.
+- Retained step logs can be truncated or missing; that does not prove a step succeeded or did nothing. If `github_job_step_logs_fetch` fails or looks incomplete, use `gh run view <run-id> --log-failed`. If that prints nothing, which happens with older `gh` versions, use `gh api repos/<owner>/<repo>/actions/jobs/<job-id>/logs`.
 - One run is an anecdote. Before blaming a recent change, compare with runs before it.
 
 ## 3. Reproduce when evidence is not enough
