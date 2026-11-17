@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "description": "Investigate CI and builds, analyze compute usage, and manage Namespace Devboxes.",
   "author": {
-    "name": "Namespace Labs Inc.",
+    "name": "Namespace Labs",
     "email": "support@namespace.so",
     "url": "https://namespace.so"
   },
@@ -18,7 +18,7 @@
         "displayName": "Namespace",
         "shortDescription": "CI insights and Devboxes",
         "longDescription": "Connect to your Namespace workspace to investigate GitHub Actions jobs and container builds, analyze compute usage, identify runner sizing opportunities, and manage Devboxes. Read-and-write access supports creating, starting, stopping, and deleting Devboxes and running commands in them. Skills cover adopting Namespace runners, debugging failed jobs, and working with Devboxes. Sign in to Namespace and authorize the workspace you want to use.",
-        "developerName": "Namespace Labs Inc.",
+        "developerName": "Namespace Labs",
         "category": "Developer Tools",
         "defaultPrompt": [
           "Which Namespace CI jobs could use smaller runners?",
