@@ -1,7 +1,7 @@
 {
   "name": "namespace",
   "owner": {
-    "name": "Namespace Labs Inc.",
+    "name": "Namespace Labs",
     "email": "support@namespace.so",
     "url": "https://namespace.so"
   },
@@ -13,7 +13,7 @@
       "description": "Investigate CI and builds, analyze compute usage, and manage Namespace Devboxes.",
       "version": "0.1.0",
       "author": {
-        "name": "Namespace Labs Inc.",
+        "name": "Namespace Labs",
         "email": "support@namespace.so",
         "url": "https://namespace.so"
       },
