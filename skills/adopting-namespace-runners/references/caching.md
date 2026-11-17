@@ -43,7 +43,7 @@ Package managers and toolchains, after checkout and after the toolchain is insta
     cache: go
 ```
 
-For `actions/setup-node`, set `package-manager-cache: false` and `cache: ""`.
+For `actions/setup-node`, remove `cache` or set it to `""`; on v5 and later, also set `package-manager-cache: false`.
 
 Supported `cache:` modes include `apt`, `brew`, `bun`, `cocoapods`, `composer`, `deno`, `go`, `golangci-lint`, `gradle`, `kotlin-native`, `maven`, `mise`, `nix`, `npm`, `playwright`, `pnpm`, `poetry`, `python`, `ruby`, `rust`, `swiftpm`, `uv`, and `xcode`. Check the [action reference](https://namespace.so/docs/reference/github-actions/nscloud-cache-action) for each mode's prerequisites.
 

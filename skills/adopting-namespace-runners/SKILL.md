@@ -42,7 +42,7 @@ See [Optimizing Docker build performance](https://namespace.so/docs/solutions/gi
 Caches live on cache volumes attached to the runner. Turn them on in the profile (caching options), or with labels for label-based jobs. Read [references/caching.md](references/caching.md) for the exact steps and limits, then adopt in this order, measuring after each:
 
 1. **Toolchains, container images, and action downloads:** transparent once enabled; no workflow steps.
-2. **Package managers and build outputs:** `namespacelabs/nscloud-cache-action@v1` with `cache:` modes, placed after checkout and after the toolchain setup step. Turn off the setup action's own GitHub cache: `cache: false` on `actions/setup-go`; `package-manager-cache: false` and `cache: ""` on `actions/setup-node`.
+2. **Package managers and build outputs:** `namespacelabs/nscloud-cache-action@v1` with `cache:` modes, placed after checkout and after the toolchain setup step. Turn off the setup action's own GitHub cache: `cache: false` on `actions/setup-go`; on `actions/setup-node`, remove `cache` and, on v5 and later, set `package-manager-cache: false`.
 3. **`actions/cache`:** replace with `nscloud-cache-action` and the same `path:` list. Keys do not carry over: every branch writes to the same volume.
 4. **Git checkouts**, only for very large repositories, long history, many submodules, or Git LFS: `namespacelabs/nscloud-checkout-action@v9` in place of `actions/checkout`, with Git repository checkout caching enabled.
 
