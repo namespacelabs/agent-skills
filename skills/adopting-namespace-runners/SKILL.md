@@ -22,7 +22,7 @@ Use exactly one of these per job:
 - **Runner profile** (recommended for teams): `runs-on: namespace-profile-<name>`. Shape, caching, and builder settings live in the profile, which people edit in the [dashboard](https://cloud.namespace.so/workspace/actions/profiles). Changing a profile affects every job that uses it, so treat it as shared configuration.
 - **Machine labels** (configuration in code): `runs-on: nscloud-{os}-{arch}-{shape}`, such as `nscloud-ubuntu-24.04-amd64-4x8` or `nscloud-macos-tahoe-arm64-6x14`. Only one `nscloud-` machine label is allowed per job; Namespace does not schedule a job with more than one or an invalid one. Read [references/runner-labels.md](references/runner-labels.md) before writing labels.
 
-Keep the job's OS version and architecture. Start with a shape close to the current runner and right-size after a few runs.
+Keep the job's OS version and architecture. Start with a shape close to the current runner and right-size after a few runs with the `optimizing-namespace-ci` skill.
 
 Change one workflow first, on a branch, before converting the rest.
 

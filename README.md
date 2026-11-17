@@ -54,6 +54,7 @@ npx skills add namespacelabs/agent-skills --skill devboxes
 |---|---|
 | `adopting-namespace-runners` | Move GitHub Actions workflows onto Namespace runners and turn on Remote Builders and caching. References: `runner-labels.md` (label grammar, converting GitHub-hosted labels), `caching.md` (cache volumes, cache action, protecting caches) |
 | `debugging-github-actions-jobs` | Find why one Namespace-run job failed, timed out, ran out of memory, ran slowly, or waited to start |
+| `optimizing-namespace-ci` | Make CI on Namespace faster, cheaper, or more reliable from measured evidence: runner sizing, caching, repeated setup, Docker builds, queue delays, sharding. References: `evidence.md` (MCP tools, reports, interpretation limits) |
 | `devboxes` | Spin up devboxes to run commands or workloads. References: `cli-setup.md` (install the CLI, log in), `run-tests.md` (test suites, sharding), `inside-a-devbox.md` (running inside a devbox: `boxctl`, task markers) |
 
 ## Repository layout

@@ -5,7 +5,7 @@ description: Creates, runs, shares, and tears down Namespace devboxes with `devb
 
 # Namespace devboxes
 
-Namespace devboxes are remote `linux/amd64` or `macos/arm64` machines. Linux devboxes have Docker available. This skill describes the general building blocks for working with devboxes - creating them, transferring files, hydrating a workspace, installing toolchains, running commands with `devbox exec`, sharing web work with teammates through `devbox.so`, and managing the devbox lifecycle.
+Namespace devboxes are remote `linux/amd64` or `macos/arm64` machines. Linux devboxes have Docker available.
 
 Throughout this skill:
 
@@ -63,8 +63,6 @@ devbox create \
 
 Linux/amd64 is the default when `--platform` is omitted. Pass `--platform macos/arm64` when the task requires macOS or Apple Silicon.
 
-Add `--ephemeral` when the devbox does not need to persist after a task is complete; omit it when persistence is required.
-
 **Important (workspace checkout default)** If `--checkout` is unset, Namespace uses the workspace's configured default repo and clones it automatically. When no repository is needed (e.g. a scratch VM for a one-off command), pass `--no_checkout` to skip cloning entirely.
 
 `--checkout <repo-url>` (e.g. `git@github.com:org/repo.git`) clones the repository into `/workspaces/<repo-name>`. If creation fails because checkout is unavailable for the repo or org:
@@ -80,8 +78,6 @@ Linux sizes: `s` (4 vCPU / 8 GB), `m` (8 vCPU / 16 GB), `l` (16 vCPU / 32 GB), `
 **Overlap creation with local prep** `devbox create` blocks until the machine is ready, which takes tens of seconds. Use that time: run `devbox create` as a background task, then immediately compute any local git diff and write the setup and run scripts locally. Once creation completes, upload and execute. This eliminates idle waiting.
 
 **Note** Devbox creation might fail due to Namespace plan limits on resource tiers or instance counts. If this happens: **PROMPT THE USER BEFORE PROCEEDING** run `devbox list` and ask to expire or reuse any of the available devboxes, then retry; As a last resort, consolidate work across fewer devboxes rather than blocking.
-
-For test or script runs that benefit from sharding across multiple devboxes, see [references/run-tests.md](references/run-tests.md).
 
 ## 2. Hydrate the workspace and install toolchains
 
@@ -149,8 +145,6 @@ Upload those directly, add them to the tarball, or rsync them if there are many:
 ```bash
 # for rsync - configure native ssh
 devbox configure-ssh <name>
-# After running this, you can connect with:
-ssh <name>.devbox.namespace
 # Then list untracked files and feed them to rsync
 git ls-files --others --exclude-standard | \
   rsync -av --files-from=- . \
@@ -201,7 +195,7 @@ devbox exec <name> -- <cmd> <args...>
 
 `devbox ssh <name>` remains available for interactive shells and TTY-dependent workflows. Prefer `devbox exec` for non-interactive commands.
 
-**Alternative: native ssh** If a workflow uses a tool, which relies on standard SSH tooling (`scp`, `rsync`, etc.), run `devbox configure-ssh <name>` once to write an entry into your `~/.ssh/config`. After that, the devbox is reachable as `<name>.devbox.namespace`. Prefer `devbox exec` for commands; reach for native ssh when you specifically need standard tooling.
+**Alternative: native ssh** If a workflow uses a tool, which relies on standard SSH tooling (`scp`, `rsync`, etc.), run `devbox configure-ssh <name>` once to write an entry into your `~/.ssh/config`. After that, the devbox is reachable as `<name>.devbox.namespace`.
 
 
 **Important (exec does not give you a shell - but you can ask for one)** `devbox exec` runs the command directly, so shell operators such as `&&`, `;`, redirections and variable expansion are NOT interpreted by default. `devbox exec <name> -- cd /src && make` will not do what you want.
@@ -260,9 +254,6 @@ EOF
 devbox upload <name> /tmp/run.sh /tmp/run.sh
 devbox exec   <name> -- chmod +x /tmp/run.sh
 devbox exec   <name> -- bash /tmp/run.sh
-
-# Pull the full log only if the summary shows a non-zero exit.
-# devbox download <name> /workspaces/run.log /tmp/run.log
 ```
 
 **Note** Capture the workload's exit code (`status=0; cmd || status=$?`) before printing the summary. Use `devbox download` only for devboxes whose summary reported a non-zero exit, unless specified otherwise.
