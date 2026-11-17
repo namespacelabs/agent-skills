@@ -18,9 +18,9 @@ jobs:
       MCP_PUBLISHER_VERSION: v1.8.9
       CURSOR_SCHEMA: https://raw.githubusercontent.com/cursor/plugins/5229aad76c37451561c5b81a9b5072ae1c549a5b/schemas/plugin.schema.json
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
 
@@ -47,9 +47,10 @@ jobs:
 
       - name: Validate Gemini extension
         run: |
-          output=$(npx -y @google/gemini-cli@0.68.0 extensions validate . 2>&1)
+          npm install --prefix "$RUNNER_TEMP/gemini" --silent @google/gemini-cli@0.68.0
+          output=$("$RUNNER_TEMP/gemini/node_modules/.bin/gemini" extensions validate . 2>&1) || { echo "$output"; exit 1; }
           echo "$output"
-          ! grep -qi 'warning' <<<"$output"
+          if grep -qi 'warning' <<<"$output"; then exit 1; fi
 
       - name: Validate Antigravity plugin
         run: |
@@ -58,13 +59,18 @@ jobs:
           tar -xzf "$RUNNER_TEMP/agy.tar.gz" -C "$RUNNER_TEMP" antigravity
           # Antigravity warns about other agents' files, which are expected.
           # skills/devboxes/SKILL.md is over Antigravity's 24,000-byte skill limit until it is shortened.
-          "$RUNNER_TEMP/antigravity" plugin validate --json . | jq -e '
+          "$RUNNER_TEMP/antigravity" plugin validate --json . > "$RUNNER_TEMP/agy.json"
+          cat "$RUNNER_TEMP/agy.json"
+          jq -e '
+            .manifest as $manifest |
             [.findings[] | select(
               .severity == "error" or (
                 .severity == "warning" and
-                (.file | IN(".mcp.json", "mcp.json", "plugin.json", "GEMINI.md", "skills/devboxes/SKILL.md") | not)
+                (.file | IN(".mcp.json", "mcp.json", "GEMINI.md") | not) and
+                (.file != "plugin.json" or $manifest == "plugin.json") and
+                (.file != "skills/devboxes/SKILL.md" or (.message | startswith("the body is") | not))
               )
-            )] | length == 0'
+            )] | length == 0' "$RUNNER_TEMP/agy.json"
 
       - name: Validate MCP Registry entry
         run: |

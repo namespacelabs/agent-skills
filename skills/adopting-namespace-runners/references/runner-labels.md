@@ -1,6 +1,6 @@
 # Runner labels
 
-Read this before writing `nscloud-` labels in [../SKILL.md](../SKILL.md). The full grammar is in [Runner Labels](https://namespace.so/docs/reference/github-actions/runner-configuration); check it for shapes and OS versions added since this was written.
+Source: [Runner Labels](https://namespace.so/docs/reference/github-actions/runner-configuration), which lists every supported OS version and shape.
 
 ## Machine label
 
@@ -45,10 +45,13 @@ Map each job to the same OS version and architecture, then pick a starting shape
 
 | GitHub-hosted | Namespace starting point |
 |---|---|
-| `ubuntu-24.04`, `ubuntu-latest` | `nscloud-ubuntu-24.04-amd64-4x8` |
+| `ubuntu-26.04` | `nscloud-ubuntu-26.04-amd64-4x8` |
+| `ubuntu-24.04` | `nscloud-ubuntu-24.04-amd64-4x8` |
 | `ubuntu-22.04` | `nscloud-ubuntu-22.04-amd64-4x8` |
-| `ubuntu-24.04-arm` | `nscloud-ubuntu-24.04-arm64-4x8` |
-| `windows-2022`, `windows-latest` | `nscloud-windows-2022-amd64-4x8` |
+| `ubuntu-26.04-arm`, `ubuntu-24.04-arm` | `nscloud-ubuntu-<version>-arm64-4x8` |
+| `windows-2022` | `nscloud-windows-2022-amd64-4x8` |
 | `macos-*` on Apple silicon | `nscloud-macos-<matching version>-arm64-6x14` |
+
+`ubuntu-latest` and `windows-latest` move as GitHub updates them; map them to the version GitHub currently resolves, from the job's "Set up job" log. Namespace has no Windows Server 2025 or Intel macOS runners: map `windows-2025` to `windows-2022` and tell the user, and leave Intel macOS jobs where they are.
 
 Images differ from GitHub's: preinstalled tool versions may not match. When a step relied on a preinstalled tool, add an explicit setup step instead of assuming it is present.

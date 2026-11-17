@@ -2,7 +2,7 @@
 
 Skills and the hosted [Namespace MCP server](https://namespace.so/docs/reference/mcp) for Claude, Codex, Cursor, Gemini, Antigravity, and other agents. Investigate CI and builds, adopt Namespace runners and caching, debug failed jobs, analyze compute usage, and manage Devboxes.
 
-The plugin connects to `https://mcp.namespace.so/mcp`. On first use, your agent opens Namespace in the browser to authorize one workspace. For read-only access, add `https://mcp.namespace.so/mcp/readonly` by hand instead, as the [MCP docs](https://namespace.so/docs/reference/mcp) describe.
+The plugin connects to `https://mcp.namespace.so/mcp`. On first use, your agent opens Namespace in the browser to authorize one workspace. For read-only access, skip the plugin and add `https://mcp.namespace.so/mcp/readonly` as described in the [MCP docs](https://namespace.so/docs/reference/mcp).
 
 ## Install
 
@@ -13,7 +13,7 @@ claude plugin marketplace add namespacelabs/agent-skills
 claude plugin install namespace@namespace
 ```
 
-Then run `/mcp`, select `plugin:namespace:namespace`, and choose **Authenticate**. In Claude Cowork, open **Settings** > **Plugins** > **Add marketplace**, enter `namespacelabs/agent-skills`, and install **Namespace**.
+Then run `/mcp`, select `plugin:namespace:namespace`, and choose **Authenticate**. In Claude Cowork, open **Settings** > **Plugins**, click **Add** > **Add marketplace**, enter `namespacelabs/agent-skills`, then install **Namespace** from **Browse**.
 
 ### Codex
 
@@ -25,7 +25,7 @@ Then run `/plugins` in Codex, select **Namespace**, and install it.
 
 ### Cursor
 
-Add the plugin from this repository in **Cursor Settings** > **Plugins**. After installing, select **Authenticate** on the Namespace MCP server.
+Install **Namespace** from the [Cursor Marketplace](https://cursor.com/marketplace) once it is listed. Until then, use the one-click install in the [MCP docs](https://namespace.so/docs/reference/mcp).
 
 ### Gemini CLI
 

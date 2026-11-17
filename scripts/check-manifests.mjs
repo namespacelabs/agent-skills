@@ -3,8 +3,9 @@
 // Schema validation runs separately in CI; this covers what the schemas cannot: agreement between files.
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const root = resolve(dirname(new URL(import.meta.url).pathname), "..");
+const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const errors = [];
 const read = (path) => JSON.parse(readFileSync(join(root, path), "utf8"));
 const expectEqual = (label, actual, expected) => {
@@ -70,7 +71,7 @@ for (const skill of readdirSync(join(root, "skills"))) {
     errors.push(`skills/${skill} has no SKILL.md`);
     continue;
   }
-  const text = readFileSync(skillFile, "utf8");
+  const text = readFileSync(skillFile, "utf8").replace(/\r\n/g, "\n");
   const frontmatter = text.match(/^---\n([\s\S]*?)\n---\n/);
   if (!frontmatter) {
     errors.push(`skills/${skill}/SKILL.md has no frontmatter`);
@@ -79,8 +80,8 @@ for (const skill of readdirSync(join(root, "skills"))) {
   const field = (key) => frontmatter[1].match(new RegExp(`^${key}:\\s*"?(.*?)"?\\s*$`, "m"))?.[1];
   expectEqual(`skills/${skill}/SKILL.md name`, field("name"), skill);
   const skillDescription = field("description") ?? "";
-  if (skillDescription.length === 0 || skillDescription.length > 1024) {
-    errors.push(`skills/${skill}/SKILL.md description must be 1 to 1024 characters`);
+  if (/^[>|]/.test(skillDescription) || skillDescription.length === 0 || skillDescription.length > 1024) {
+    errors.push(`skills/${skill}/SKILL.md description must be a single-line string of 1 to 1024 characters`);
   }
   if (!readFileSync(join(root, "README.md"), "utf8").includes(`\`${skill}\``)) {
     errors.push(`README.md skill catalog does not list ${skill}`);

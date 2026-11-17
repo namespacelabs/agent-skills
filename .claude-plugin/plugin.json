@@ -10,6 +10,10 @@
   "homepage": "https://namespace.so/docs/reference/mcp",
   "repository": "https://github.com/namespacelabs/agent-skills",
   "license": "Apache-2.0",
+  "icon": "./assets/logo.svg",
   "privacyPolicyUrl": "https://namespace.so/privacy",
+  "termsOfServiceUrl": "https://namespace.so/terms",
+  "supportUrl": "https://namespace.so/contact",
+  "documentationUrl": "https://namespace.so/docs/reference/mcp",
   "keywords": ["namespace", "ci", "github-actions", "runners", "devbox", "docker-builds", "mcp"]
 }

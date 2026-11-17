@@ -13,10 +13,6 @@
     {
       "type": "streamable-http",
       "url": "https://mcp.namespace.so/mcp"
-    },
-    {
-      "type": "streamable-http",
-      "url": "https://mcp.namespace.so/mcp/readonly"
     }
   ]
 }

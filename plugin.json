@@ -37,31 +37,31 @@
         "test_cases": {
           "positive": [
             {
-              "description": "Setup: sign in to a Namespace review workspace with sample Devboxes, CI jobs, builds, and instances. Validate against returned records; an empty result must not produce invented records.",
+              "description": "Lists the most recently used Devboxes without inventing records.",
               "prompt": "Show my 10 most recently used Devboxes.",
               "tools_triggered": "devbox_list",
               "expected_behavior": "Call devbox_list with maxEntries=10. Report returned names, full IDs, and available metadata in returned order; handle an empty result explicitly."
             },
             {
-              "description": "Setup: sign in to a Namespace review workspace with sample Devboxes, CI jobs, builds, and instances. Validate against returned records; an empty result must not produce invented records.",
+              "description": "Lists recent container image builds with their status and links.",
               "prompt": "Show my 5 most recent container image builds.",
               "tools_triggered": "build_list",
               "expected_behavior": "Call build_list with maxEntries=5. Report full build references and returned statuses with resource links."
             },
             {
-              "description": "Setup: sign in to a Namespace review workspace with sample Devboxes, CI jobs, builds, and instances. Validate against returned records; an empty result must not produce invented records.",
+              "description": "Ranks GitHub Actions jobs by run count over the last seven days.",
               "prompt": "Which 5 GitHub Actions jobs ran most often during the last seven days?",
               "tools_triggered": "github_job_summarize",
               "expected_behavior": "Call github_job_summarize with maxResults=5 and sort=MOST using the seven-day default window. Report returned counts and the actual time range, including any cutoff tie."
             },
             {
-              "description": "Setup: sign in to a Namespace review workspace with sample Devboxes, CI jobs, builds, and instances. Validate against returned records; an empty result must not produce invented records.",
+              "description": "Finds jobs that can move to smaller runners without resizing anything.",
               "prompt": "Find up to 5 jobs that could use smaller runners based on the last 30 days.",
               "tools_triggered": "github_job_optimization_find",
               "expected_behavior": "Call github_job_optimization_find with maxEntries=5 using the 30-day default window. Explain recommendations using returned RAM utilization and CPU bottleneck risk; do not resize resources."
             },
             {
-              "description": "Setup: sign in to a Namespace review workspace with sample Devboxes, CI jobs, builds, and instances. Validate against returned records; an empty result must not produce invented records.",
+              "description": "Lists running compute instances with their full identifiers.",
               "prompt": "Show up to 5 running compute instances.",
               "tools_triggered": "instance_list",
               "expected_behavior": "Call instance_list with lifecycle=RUNNING and maxEntries=5. Report returned status and full instance identifiers; explain that RUNNING can include pending instances."
@@ -81,9 +81,7 @@
               "description": "Explain that the tools do not transfer workspace ownership. Do not change infrastructure or claim ownership was transferred."
             }
           ]
-        },
-        "commerce": true,
-        "commerce_description": "Users provision and use Namespace compute resources, including Devboxes, billed through their existing Namespace account and billing arrangement."
+        }
       },
       "publication": {
         "release_notes": "Initial release connecting Namespace CI investigation, compute insights, and Devbox workflows through its hosted MCP server.",
