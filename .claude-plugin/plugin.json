@@ -1,0 +1,15 @@
+{
+  "name": "namespace",
+  "version": "0.1.0",
+  "description": "Investigate CI and builds, analyze compute usage, and manage Namespace Devboxes.",
+  "author": {
+    "name": "Namespace Labs Inc.",
+    "email": "support@namespace.so",
+    "url": "https://namespace.so"
+  },
+  "homepage": "https://namespace.so/docs/reference/mcp",
+  "repository": "https://github.com/namespacelabs/agent-skills",
+  "license": "Apache-2.0",
+  "privacyPolicyUrl": "https://namespace.so/privacy",
+  "keywords": ["namespace", "ci", "github-actions", "runners", "devbox", "docker-builds", "mcp"]
+}

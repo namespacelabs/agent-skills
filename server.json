@@ -1,0 +1,22 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "so.namespace/mcp",
+  "title": "Namespace",
+  "description": "Investigate GitHub Actions jobs and builds, analyze CI usage, and manage Namespace Devboxes.",
+  "version": "0.1.0",
+  "websiteUrl": "https://namespace.so/docs/reference/mcp",
+  "repository": {
+    "url": "https://github.com/namespacelabs/agent-skills",
+    "source": "github"
+  },
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://mcp.namespace.so/mcp"
+    },
+    {
+      "type": "streamable-http",
+      "url": "https://mcp.namespace.so/mcp/readonly"
+    }
+  ]
+}

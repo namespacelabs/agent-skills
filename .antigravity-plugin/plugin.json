@@ -1,0 +1,22 @@
+{
+  "$schema": "https://antigravity.google/schemas/v1/plugin.json",
+  "name": "namespace",
+  "displayName": "Namespace",
+  "version": "0.1.0",
+  "description": "Investigate CI and builds, analyze compute usage, and manage Namespace Devboxes.",
+  "logo": "assets/logo.svg",
+  "suggestedPrompts": [
+    "Which GitHub Actions jobs running on Namespace can move to smaller runners?",
+    "Why did my latest failed Namespace GitHub Actions job fail?",
+    "Create a Namespace Devbox and serve a page at a private devbox.so URL."
+  ],
+  "author": {
+    "name": "Namespace Labs Inc.",
+    "email": "support@namespace.so",
+    "url": "https://namespace.so"
+  },
+  "homepage": "https://namespace.so/docs/reference/mcp",
+  "repository": "https://github.com/namespacelabs/agent-skills",
+  "license": "Apache-2.0",
+  "keywords": ["namespace", "ci", "github-actions", "runners", "devbox", "docker-builds", "mcp"]
+}

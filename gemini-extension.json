@@ -1,0 +1,12 @@
+{
+  "name": "namespace",
+  "version": "0.1.0",
+  "description": "Investigate CI and builds, analyze compute usage, and manage Namespace Devboxes.",
+  "mcpServers": {
+    "namespace": {
+      "type": "http",
+      "url": "https://mcp.namespace.so/mcp"
+    }
+  },
+  "contextFileName": "GEMINI.md"
+}

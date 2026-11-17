@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "namespace": {
+      "type": "http",
+      "url": "https://mcp.namespace.so/mcp"
+    }
+  }
+}

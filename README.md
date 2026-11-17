@@ -1,16 +1,50 @@
-# Namespace agent skills
+# Namespace plugin and agent skills
 
-Skills for interacting with [Namespace](https://cloud.namespace.so) using agents like Claude, Codex or Cursor - provision devboxes, run workloads, and manage cloud resources with agents.
+Skills and the hosted [Namespace MCP server](https://namespace.so/docs/reference/mcp) for Claude, Codex, Cursor, Gemini, Antigravity, and other agents. Investigate CI and builds, adopt Namespace runners and caching, debug failed jobs, analyze compute usage, and manage Devboxes.
+
+The plugin connects to `https://mcp.namespace.so/mcp`. On first use, your agent opens Namespace in the browser to authorize one workspace. For read-only access, add `https://mcp.namespace.so/mcp/readonly` by hand instead, as the [MCP docs](https://namespace.so/docs/reference/mcp) describe.
 
 ## Install
 
+### Claude Code and Claude Cowork
+
 ```sh
-npx skills add namespacelabs/agent-skills
+claude plugin marketplace add namespacelabs/agent-skills
+claude plugin install namespace@namespace
 ```
 
-Add a specific skill with `--skill`:
+Then run `/mcp`, select `plugin:namespace:namespace`, and choose **Authenticate**. In Claude Cowork, open **Settings** > **Plugins** > **Add marketplace**, enter `namespacelabs/agent-skills`, and install **Namespace**.
+
+### Codex
 
 ```sh
+codex plugin marketplace add namespacelabs/agent-skills
+```
+
+Then run `/plugins` in Codex, select **Namespace**, and install it.
+
+### Cursor
+
+Add the plugin from this repository in **Cursor Settings** > **Plugins**. After installing, select **Authenticate** on the Namespace MCP server.
+
+### Gemini CLI
+
+```sh
+gemini extensions install https://github.com/namespacelabs/agent-skills
+```
+
+### Antigravity
+
+```sh
+agy plugin install https://github.com/namespacelabs/agent-skills
+```
+
+### Skills only
+
+Without the MCP server, for any agent that supports [Agent Skills](https://agentskills.io):
+
+```sh
+npx skills add namespacelabs/agent-skills
 npx skills add namespacelabs/agent-skills --skill devboxes
 ```
 
@@ -18,4 +52,22 @@ npx skills add namespacelabs/agent-skills --skill devboxes
 
 | Skill | Use case |
 |---|---|
+| `adopting-namespace-runners` | Move GitHub Actions workflows onto Namespace runners and turn on Remote Builders and caching. References: `runner-labels.md` (label grammar, converting GitHub-hosted labels), `caching.md` (cache volumes, cache action, protecting caches) |
+| `debugging-github-actions-jobs` | Find why one Namespace-run job failed, timed out, ran out of memory, ran slowly, or waited to start |
 | `devboxes` | Spin up devboxes to run commands or workloads. References: `cli-setup.md` (install the CLI, log in), `run-tests.md` (test suites, sharding), `inside-a-devbox.md` (running inside a devbox: `boxctl`, task markers) |
+
+## Repository layout
+
+One plugin, `namespace`, at the repository root. Each agent reads its own manifest; all share `skills/` and the MCP server.
+
+| Agent | Files |
+|---|---|
+| Agent Plugins standard (Codex, ChatGPT) | `plugin.json`, `mcp.json` |
+| Claude | `.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json`, `.mcp.json` |
+| Codex repo marketplace | `.agents/plugins/marketplace.json` |
+| Cursor | `.cursor-plugin/plugin.json` |
+| Antigravity | `.antigravity-plugin/plugin.json`, `mcp_config.json` |
+| Gemini CLI | `gemini-extension.json`, `GEMINI.md` |
+| MCP Registry | `server.json` |
+
+`node scripts/check-manifests.mjs` checks that the manifests agree on name, version, description, and MCP URL, and that each skill is well formed. CI also runs each vendor's validator. To release, bump `version` in every manifest and `server.json`.
