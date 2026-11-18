@@ -1,6 +1,6 @@
 # Namespace plugin and agent skills
 
-Skills and the hosted [Namespace MCP server](https://namespace.so/docs/reference/mcp) for Claude, Codex, Cursor, Gemini, Antigravity, and other agents. Investigate CI and builds, adopt Namespace runners and caching, debug failed jobs, analyze compute usage, and manage Devboxes.
+Skills and the hosted [Namespace MCP server](https://namespace.so/docs/reference/mcp) for Claude, Codex, Cursor, Gemini, Antigravity, and other agents. Investigate CI and builds, adopt Namespace runners and caching, optimize CI speed and cost, debug failed jobs, analyze compute usage, and manage Devboxes.
 
 The plugin connects to `https://mcp.namespace.so/mcp`. On first use, your agent opens Namespace in the browser to authorize one workspace. For read-only access, skip the plugin and add `https://mcp.namespace.so/mcp/readonly` as described in the [MCP docs](https://namespace.so/docs/reference/mcp).
 
