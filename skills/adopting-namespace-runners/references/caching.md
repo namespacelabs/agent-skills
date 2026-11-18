@@ -7,7 +7,7 @@ Sources: [Caching in GitHub Actions](https://namespace.so/docs/solutions/github-
 - A job gets the most recently used volume with its cache tag, mounted at `/cache`.
 - Profile jobs get one volume per profile and repository by default. To share a volume across profiles or repositories, set the same tag: `runs-on: namespace-profile-<name>;overrides.cache-tag=<tag>`.
 - Label jobs with the same `nscloud-cache-tag-<tag>` share one volume, across repositories too.
-- There are no cache keys. Main and branch runs write to the same volume unless writes are restricted (below).
+- There are no cache keys. Default-branch and other runs write to the same volume unless writes are restricted (below).
 - The volume is 20 GB by default; the maximum depends on the plan. Size it so the working set fits, or hit rates drop.
 - Containerized jobs (`container:`) must mount the volume into the container; see [Running jobs in containers](https://namespace.so/docs/solutions/github-actions/runner-controls/containerized-jobs).
 
@@ -35,7 +35,7 @@ Checkout, for very large repositories, long history, many submodules, or Git LFS
 Package managers and toolchains, after checkout and after the toolchain is installed:
 
 ```yaml
-- uses: actions/setup-go@v6
+- uses: actions/setup-go@v7
   with:
     cache: false
 - uses: namespacelabs/nscloud-cache-action@v1
@@ -45,7 +45,7 @@ Package managers and toolchains, after checkout and after the toolchain is insta
 
 For `actions/setup-node`, remove `cache` or set it to `""`; on v5 and later, also set `package-manager-cache: false`.
 
-Supported `cache:` modes include `apt`, `brew`, `bun`, `cocoapods`, `composer`, `deno`, `go`, `golangci-lint`, `gradle`, `kotlin-native`, `maven`, `mise`, `nix`, `npm`, `playwright`, `pnpm`, `poetry`, `python`, `ruby`, `rust`, `swiftpm`, `uv`, and `xcode`. Check the [action reference](https://namespace.so/docs/reference/github-actions/nscloud-cache-action) for each mode's prerequisites.
+Supported `cache:` modes include `apt`, `brew`, `bun`, `cocoapods`, `composer`, `deno`, `go`, `golangci-lint`, `gradle`, `kotlin-native`, `maven`, `mise`, `nix`, `npm`, `playwright`, `pnpm`, `poetry`, `python`, `ruby`, `rust`, `swiftpm`, `uv`, `xcode`, and `yarn`. Check the [action reference](https://namespace.so/docs/reference/github-actions/nscloud-cache-action) for each mode's prerequisites.
 
 Arbitrary paths, replacing `actions/cache`:
 
@@ -60,13 +60,13 @@ Running the cache action before checkout loses the cache, because checkout wipes
 
 ## Protect caches
 
-Let only trusted branches write, so pull requests from bots, agents, and forks cannot change what main reads:
+Let only trusted branches write, so pull requests from bots, agents, and forks cannot change what the default branch reads. `nscloud-cache-allow-commit-from-default` matches the default branch whatever its name; `nscloud-cache-allow-commit-from-<branch>` names one:
 
 ```yaml
 runs-on:
   - nscloud-ubuntu-24.04-amd64-4x8-with-cache
   - nscloud-cache-tag-npm
-  - nscloud-cache-allow-commit-from-main
+  - nscloud-cache-allow-commit-from-default
 ```
 
 Profiles have an equivalent setting. Recommend protection whenever a cache is shared between the default branch and untrusted branches.

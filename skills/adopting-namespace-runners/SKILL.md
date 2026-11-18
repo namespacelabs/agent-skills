@@ -12,8 +12,8 @@ The [Namespace MCP server](https://namespace.so/docs/reference/mcp) shows runner
 ## 1. Check the starting point
 
 1. Read every workflow under `.github/workflows/` that the user wants to move, including reusable workflows and composite actions they call. List each job's `runs-on`, matrix, container, services, caching steps, and Docker build steps.
-2. Check that the repository's GitHub organization is connected to Namespace: `github_job_list` filtered to the repository returns earlier jobs. Profiles alone do not prove this repository is connected. Otherwise the user connects it in the [dashboard](https://cloud.namespace.so/workspace/ghrunners); jobs pointed at Namespace labels before that stay queued.
-3. Reuse an existing profile when one fits the job's OS and architecture. Read its configuration with `github_runner_profile_get`, requesting the cache and builder fields, before relying on it.
+2. Check that the repository's GitHub organization is connected to Namespace: `github_job_list` with `requestedFields: ["REPOSITORY"]` returns jobs from other repositories in the same organization. A repository that has never run on Namespace has no jobs of its own. If the organization has none, the user connects it in the [dashboard](https://cloud.namespace.so/workspace/ghrunners); if it has some, the user checks that the Namespace GitHub App can access this repository. Jobs pointed at Namespace labels before that stay queued.
+3. Reuse an existing profile when one fits the job's OS and architecture. Read its configuration with `github_runner_profile_get` with `requestedFields: ["CACHE_VOLUMES", "BUILDER_MODE"]` before relying on it. If no profile fits, use machine labels or ask the user to create a profile.
 
 ## 2. Choose how runners are selected
 
@@ -41,14 +41,14 @@ See [Optimizing Docker build performance](https://namespace.so/docs/solutions/gi
 
 Caches live on cache volumes attached to the runner. Turn them on in the profile (caching options), or with labels for label-based jobs. Read [references/caching.md](references/caching.md) for the exact steps and limits, then adopt in this order, measuring after each:
 
-1. **Toolchains, container images, and action downloads:** transparent once enabled; no workflow steps.
+1. **Toolchains, container images, and action downloads:** transparent once enabled; no workflow steps. Action download caching is a profile setting only; no label enables it.
 2. **Package managers and build outputs:** `namespacelabs/nscloud-cache-action@v1` with `cache:` modes, placed after checkout and after the toolchain setup step. Turn off the setup action's own GitHub cache: `cache: false` on `actions/setup-go`; on `actions/setup-node`, remove `cache` and, on v5 and later, set `package-manager-cache: false`.
 3. **`actions/cache`:** replace with `nscloud-cache-action` and the same `path:` list. Keys do not carry over: every branch writes to the same volume.
 4. **Git checkouts**, only for very large repositories, long history, many submodules, or Git LFS: `namespacelabs/nscloud-checkout-action@v9` in place of `actions/checkout`, with Git repository checkout caching enabled.
 
 ## 5. Validate
 
-- Open the change as a pull request. Confirm with `github_job_list` and `github_job_describe` that the jobs ran on Namespace, on the expected profile or shape, and passed.
+- Open the change as a pull request. Confirm with `github_job_list` and `github_job_describe`, requesting the `PROFILE` and `RUNNER` fields, that the jobs ran on Namespace, on the expected profile or shape, and passed.
 - Expect cache misses on the first runs and on branches before the change reaches the default branch. Compare durations only after a few warm runs on the default branch.
 - If a job fails only on Namespace, debug it from evidence (job steps, logs, resource usage, OOM events) before changing shapes or settings.
 
