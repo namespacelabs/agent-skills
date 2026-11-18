@@ -40,6 +40,8 @@ Prioritize the measured bottleneck and read the linked guide before proposing ex
 | Queue delay | Check dependencies, concurrency groups, and workspace limits before asking for more capacity | [Queue time](https://namespace.so/docs/solutions/github-actions/debugging/queue-time) |
 | Slow shard or critical path | Rebalance shards by measured duration | — |
 
+For caching and Docker build edits, follow the `adopting-namespace-runners` skill: it places `nscloud-cache-action` after the toolchain setup step and turns off that step's own cache, including `package-manager-cache: false` on `actions/setup-node` v5 and later.
+
 Rules that hold across changes:
 
 - One busy vCPU does not mean the runner is saturated, a volume hit does not mean the tool found its cache, and exit code 137 alone does not mean an OOM kill.
