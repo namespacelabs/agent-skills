@@ -1,0 +1,111 @@
+#!/usr/bin/env node
+// Checks that every vendor manifest describes the same plugin and that every skill is well formed.
+// Schema validation runs separately in CI; this covers what the schemas cannot: agreement between files.
+import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const errors = [];
+const read = (path) => JSON.parse(readFileSync(join(root, path), "utf8"));
+const expectEqual = (label, actual, expected) => {
+  if (JSON.stringify(actual) !== JSON.stringify(expected)) {
+    errors.push(`${label}: got ${JSON.stringify(actual)}, want ${JSON.stringify(expected)}`);
+  }
+};
+
+const portable = read("plugin.json");
+const claude = read(".claude-plugin/plugin.json");
+const claudeMarketplace = read(".claude-plugin/marketplace.json");
+const cursor = read(".cursor-plugin/plugin.json");
+const antigravity = read(".antigravity-plugin/plugin.json");
+const gemini = read("gemini-extension.json");
+const codexMarketplace = read(".agents/plugins/marketplace.json");
+const registry = read("server.json");
+
+const { name, version, description } = portable;
+const manifests = {
+  ".claude-plugin/plugin.json": claude,
+  ".claude-plugin/marketplace.json plugins[0]": claudeMarketplace.plugins[0],
+  ".cursor-plugin/plugin.json": cursor,
+  ".antigravity-plugin/plugin.json": antigravity,
+  "gemini-extension.json": gemini,
+};
+for (const [file, manifest] of Object.entries(manifests)) {
+  expectEqual(`${file} name`, manifest.name, name);
+  expectEqual(`${file} version`, manifest.version, version);
+  expectEqual(`${file} description`, manifest.description, description);
+}
+expectEqual(".agents/plugins/marketplace.json plugins[0].name", codexMarketplace.plugins[0].name, name);
+expectEqual("server.json version", registry.version, version);
+if (registry.description.length > 100) {
+  errors.push(`server.json description is ${registry.description.length} characters; the MCP Registry allows 100`);
+}
+
+const mcpURL = read("mcp.json").mcpServers.namespace.url;
+const mcpURLs = {
+  ".mcp.json": read(".mcp.json").mcpServers.namespace.url,
+  ".cursor-plugin/plugin.json": cursor.mcpServers.namespace.url,
+  "mcp_config.json": read("mcp_config.json").mcpServers.namespace.url,
+  "gemini-extension.json": gemini.mcpServers.namespace.url,
+  "server.json remotes[0]": registry.remotes[0].url,
+};
+for (const [file, url] of Object.entries(mcpURLs)) {
+  expectEqual(`${file} MCP URL`, url, mcpURL);
+}
+
+const openai = portable.extensions["com.openai"].interface;
+for (const [field, limit] of [["displayName", 30], ["shortDescription", 30]]) {
+  if (openai[field].length > limit) {
+    errors.push(`plugin.json interface.${field} is ${openai[field].length} characters; OpenAI allows ${limit}`);
+  }
+}
+for (const logo of [openai.logo, openai.composerIcon, cursor.logo, antigravity.logo]) {
+  if (!existsSync(join(root, logo))) errors.push(`missing logo file ${logo}`);
+}
+
+for (const skill of readdirSync(join(root, "skills"))) {
+  const skillDir = join(root, "skills", skill);
+  const skillFile = join(skillDir, "SKILL.md");
+  if (!existsSync(skillFile)) {
+    errors.push(`skills/${skill} has no SKILL.md`);
+    continue;
+  }
+  const text = readFileSync(skillFile, "utf8").replace(/\r\n/g, "\n");
+  const frontmatter = text.match(/^---\n([\s\S]*?)\n---\n/);
+  if (!frontmatter) {
+    errors.push(`skills/${skill}/SKILL.md has no frontmatter`);
+    continue;
+  }
+  const field = (key) => frontmatter[1].match(new RegExp(`^${key}:\\s*"?(.*?)"?\\s*$`, "m"))?.[1];
+  expectEqual(`skills/${skill}/SKILL.md name`, field("name"), skill);
+  const skillDescription = field("description") ?? "";
+  if (/^[>|]/.test(skillDescription) || skillDescription.length === 0 || skillDescription.length > 1024) {
+    errors.push(`skills/${skill}/SKILL.md description must be a single-line string of 1 to 1024 characters`);
+  }
+  if (!readFileSync(join(root, "README.md"), "utf8").includes(`\`${skill}\``)) {
+    errors.push(`README.md skill catalog does not list ${skill}`);
+  }
+}
+
+// Relative links inside skills must resolve, because each skill folder is installed on its own.
+const markdownFiles = (dir) =>
+  readdirSync(dir, { withFileTypes: true }).flatMap((entry) =>
+    entry.isDirectory() ? markdownFiles(join(dir, entry.name)) : entry.name.endsWith(".md") ? [join(dir, entry.name)] : [],
+  );
+for (const file of markdownFiles(join(root, "skills"))) {
+  for (const [, target] of readFileSync(file, "utf8").matchAll(/\]\(([^)#\s]+)(?:#[^)]*)?\)/g)) {
+    if (/^[a-z]+:/i.test(target)) continue;
+    const resolved = resolve(dirname(file), target);
+    const skillRoot = join(root, "skills", file.slice(join(root, "skills").length + 1).split("/")[0]);
+    if (!resolved.startsWith(skillRoot + "/") || !existsSync(resolved)) {
+      errors.push(`${file.slice(root.length + 1)} links to ${target}, which is missing or outside its skill`);
+    }
+  }
+}
+
+if (errors.length > 0) {
+  console.error(errors.map((e) => `- ${e}`).join("\n"));
+  process.exit(1);
+}
+console.log(`manifests agree on ${name} ${version}; skills are well formed`);

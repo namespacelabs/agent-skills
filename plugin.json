@@ -1,0 +1,92 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "namespace",
+  "version": "0.1.0",
+  "description": "Investigate CI and builds, analyze compute usage, and manage Namespace Devboxes.",
+  "author": {
+    "name": "Namespace Labs",
+    "email": "support@namespace.so",
+    "url": "https://namespace.so"
+  },
+  "homepage": "https://namespace.so/docs/reference/mcp",
+  "repository": "https://github.com/namespacelabs/agent-skills",
+  "license": "Apache-2.0",
+  "keywords": ["namespace", "ci", "github-actions", "runners", "devbox", "docker-builds", "mcp"],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Namespace",
+        "shortDescription": "CI insights and Devboxes",
+        "longDescription": "Connect to your Namespace workspace to investigate GitHub Actions jobs and container builds, analyze compute usage, identify runner sizing opportunities, and manage Devboxes. Read-and-write access supports creating, starting, stopping, and deleting Devboxes and running commands in them. Skills cover adopting Namespace runners, optimizing CI speed and cost, debugging failed jobs, and working with Devboxes. Sign in to Namespace and authorize the workspace you want to use.",
+        "developerName": "Namespace Labs",
+        "category": "Developer Tools",
+        "defaultPrompt": [
+          "Which Namespace CI jobs could use smaller runners?",
+          "Help me investigate a failed Namespace build.",
+          "Help me create a Namespace Devbox."
+        ],
+        "websiteURL": "https://namespace.so/docs/reference/mcp",
+        "supportURL": "https://namespace.so/contact",
+        "privacyPolicyURL": "https://namespace.so/privacy",
+        "termsOfServiceURL": "https://namespace.so/terms",
+        "brandColor": "#1C32FF",
+        "logo": "./assets/namespace.png",
+        "composerIcon": "./assets/namespace.png"
+      },
+      "review": {
+        "test_cases": {
+          "positive": [
+            {
+              "description": "Lists the most recently used Devboxes without inventing records.",
+              "prompt": "Show my 10 most recently used Devboxes.",
+              "tools_triggered": "devbox_list",
+              "expected_behavior": "Call devbox_list with maxEntries=10. Report returned names, full IDs, and available metadata in returned order; handle an empty result explicitly."
+            },
+            {
+              "description": "Lists recent container image builds with their status and links.",
+              "prompt": "Show my 5 most recent container image builds.",
+              "tools_triggered": "build_list",
+              "expected_behavior": "Call build_list with maxEntries=5. Report full build references and returned statuses with resource links."
+            },
+            {
+              "description": "Ranks GitHub Actions jobs by run count over the last seven days.",
+              "prompt": "Which 5 GitHub Actions jobs ran most often during the last seven days?",
+              "tools_triggered": "github_job_summarize",
+              "expected_behavior": "Call github_job_summarize with maxResults=5 and sort=MOST using the seven-day default window. Report returned counts and the actual time range, including any cutoff tie."
+            },
+            {
+              "description": "Finds jobs that can move to smaller runners without resizing anything.",
+              "prompt": "Find up to 5 jobs that could use smaller runners based on the last 30 days.",
+              "tools_triggered": "github_job_optimization_find",
+              "expected_behavior": "Call github_job_optimization_find with maxEntries=5 using the 30-day default window. Explain recommendations using returned RAM utilization and CPU bottleneck risk; do not resize resources."
+            },
+            {
+              "description": "Lists running compute instances with their full identifiers.",
+              "prompt": "Show up to 5 running compute instances.",
+              "tools_triggered": "instance_list",
+              "expected_behavior": "Call instance_list with lifecycle=RUNNING and maxEntries=5. Report returned status and full instance identifiers; explain that RUNNING can include pending instances."
+            }
+          ],
+          "negative": [
+            {
+              "prompt": "Refund my last Namespace invoice.",
+              "description": "Explain that the tools do not issue refunds and direct the user to Namespace support. Do not call compute or Devbox tools as a substitute."
+            },
+            {
+              "prompt": "Change my Namespace account password.",
+              "description": "Explain that these tools do not change account passwords. Do not call Namespace tools or ask for credentials in chat."
+            },
+            {
+              "prompt": "Transfer ownership of my Namespace workspace to another company.",
+              "description": "Explain that the tools do not transfer workspace ownership. Do not change infrastructure or claim ownership was transferred."
+            }
+          ]
+        }
+      },
+      "publication": {
+        "release_notes": "Initial release connecting Namespace CI investigation, compute insights, and Devbox workflows through its hosted MCP server.",
+        "countries": []
+      }
+    }
+  }
+}

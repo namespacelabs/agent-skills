@@ -1,0 +1,78 @@
+name: Validate
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: nscloud-ubuntu-24.04-amd64-2x4
+    timeout-minutes: 10
+    env:
+      AGY_URL: https://storage.googleapis.com/antigravity-public/antigravity-cli/1.4.7-5900205422411776/linux-x64/cli_linux_x64.tar.gz
+      AGY_SHA512: beda760587589f5827b0b516c3ec2c5bd5cd2e91eb0e2533807ba1e990a27dcd63aef0191e0b76fb60feab0d16eaa8210fb79842c34dd4809e257e1712edd152
+      MCP_PUBLISHER_VERSION: v1.8.9
+      CURSOR_SCHEMA: https://raw.githubusercontent.com/cursor/plugins/5229aad76c37451561c5b81a9b5072ae1c549a5b/schemas/plugin.schema.json
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+
+      - name: Check manifests agree and skills are well formed
+        run: node scripts/check-manifests.mjs
+
+      - name: Validate manifests against published schemas
+        run: |
+          mkdir -p "$RUNNER_TEMP/schemas"
+          cd "$RUNNER_TEMP/schemas"
+          curl -fsSL -o ap-plugin.json https://agent-plugins.org/schemas/1.0.0/plugin.schema.json
+          curl -fsSL -o ap-mcp.json https://agent-plugins.org/schemas/1.0.0/mcp.schema.json
+          curl -fsSL -o agy-plugin.json https://antigravity.google/schemas/v1/plugin.json
+          curl -fsSL -o cursor-plugin.json "$CURSOR_SCHEMA"
+          cd "$GITHUB_WORKSPACE"
+          ajv() { npx -y -p ajv-cli@5 -p ajv-formats@3 ajv validate --strict=false -c ajv-formats "$@"; }
+          ajv --spec=draft2020 -s "$RUNNER_TEMP/schemas/ap-plugin.json" -d plugin.json
+          ajv --spec=draft2020 -s "$RUNNER_TEMP/schemas/ap-mcp.json" -d mcp.json
+          ajv --spec=draft2020 -s "$RUNNER_TEMP/schemas/agy-plugin.json" -d .antigravity-plugin/plugin.json
+          ajv --spec=draft7 -s "$RUNNER_TEMP/schemas/cursor-plugin.json" -d .cursor-plugin/plugin.json
+
+      - name: Validate Claude plugin
+        run: npx -y @anthropic-ai/claude-code@2.1.326 plugin validate . --strict
+
+      - name: Validate Gemini extension
+        run: |
+          npm install --prefix "$RUNNER_TEMP/gemini" --silent @google/gemini-cli@0.68.0
+          output=$("$RUNNER_TEMP/gemini/node_modules/.bin/gemini" extensions validate . 2>&1) || { echo "$output"; exit 1; }
+          echo "$output"
+          if grep -qi 'warning' <<<"$output"; then exit 1; fi
+
+      - name: Validate Antigravity plugin
+        run: |
+          curl -fsSL -o "$RUNNER_TEMP/agy.tar.gz" "$AGY_URL"
+          echo "$AGY_SHA512  $RUNNER_TEMP/agy.tar.gz" | sha512sum -c -
+          tar -xzf "$RUNNER_TEMP/agy.tar.gz" -C "$RUNNER_TEMP" antigravity
+          # Antigravity warns about other agents' files, which are expected.
+          # skills/devboxes/SKILL.md is just over Antigravity's 24,000-byte limit; only its final line is cut.
+          "$RUNNER_TEMP/antigravity" plugin validate --json . > "$RUNNER_TEMP/agy.json"
+          cat "$RUNNER_TEMP/agy.json"
+          jq -e '
+            .manifest as $manifest |
+            [.findings[] | select(
+              .severity == "error" or (
+                .severity == "warning" and
+                (.file | IN(".mcp.json", "mcp.json", "GEMINI.md") | not) and
+                (.file != "plugin.json" or $manifest == "plugin.json") and
+                (.file != "skills/devboxes/SKILL.md" or (.message | startswith("the body is") | not))
+              )
+            )] | length == 0' "$RUNNER_TEMP/agy.json"
+
+      - name: Validate MCP Registry entry
+        run: |
+          curl -fsSL "https://github.com/modelcontextprotocol/registry/releases/download/$MCP_PUBLISHER_VERSION/mcp-publisher_linux_amd64.tar.gz" | tar -xz -C "$RUNNER_TEMP" mcp-publisher
+          "$RUNNER_TEMP/mcp-publisher" validate server.json

@@ -1,0 +1,27 @@
+{
+  "name": "namespace",
+  "owner": {
+    "name": "Namespace Labs",
+    "email": "support@namespace.so",
+    "url": "https://namespace.so"
+  },
+  "description": "Official Namespace plugin: skills and the hosted Namespace MCP server.",
+  "plugins": [
+    {
+      "name": "namespace",
+      "source": "./",
+      "description": "Investigate CI and builds, analyze compute usage, and manage Namespace Devboxes.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Namespace Labs",
+        "email": "support@namespace.so",
+        "url": "https://namespace.so"
+      },
+      "homepage": "https://namespace.so/docs/reference/mcp",
+      "repository": "https://github.com/namespacelabs/agent-skills",
+      "license": "Apache-2.0",
+      "category": "development",
+      "keywords": ["namespace", "ci", "github-actions", "runners", "devbox", "docker-builds", "mcp"]
+    }
+  ]
+}
