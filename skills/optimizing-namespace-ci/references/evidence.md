@@ -36,6 +36,8 @@ nsc instance report --start <RFC3339> --end <RFC3339> \
   --repository <owner/repo> --out report.csv
 ```
 
+If `nsc instance report --help` lists `-o, --output` with `json`, prefer `-o json --out report.jsonl`: one entry per line, with `github_job` or `buildkite_job` nested and per-volume `cache_hit` under `volumes`. Keys at their zero or false value are omitted, and 64-bit integers such as `job_id` are strings, so parse it with `jq` or a JSON library rather than grep. Older CLIs only write CSV.
+
 Narrow the range or filters if it times out. A nonzero exit means the file is incomplete. Write to a file: older CLIs mix a status line into stdout.
 
 ## Interpretation limits
@@ -44,5 +46,5 @@ Narrow the range or filters if it times out. A nonzero exit means the file is in
 - Aggregates merge platform, matrix variant, branch, and attempt. Recover comparable groups with report filters such as `--platform`, `--branch`, and `--profile`, or from instance details. The report has no platform column, so record the filters you used.
 - Report `resources_cpu_actual_max` is the busiest vCPU's peak as a ratio, not whole-runner utilization. `resources_ram_gb_actual_max_percent` is also a ratio despite its name.
 - The finder's `p90CPUUsedPercent` and `cpuBottleneckRisk` values are the highest per-instance p90 of the busiest vCPU, not whole-runner p90 across runs. High values can mean one busy thread.
-- `cache_volume_hit` is true if any attached volume hit. Match volume tags and paths to configuration and logs before claiming a dependency, checkout, or Docker layer cache hit.
+- CSV `cache_volume_hit` is true if any attached volume hit; JSON reports `cache_hit` per volume. Match volume tags and paths to configuration and logs before claiming a dependency, checkout, or Docker layer cache hit.
 - For Linux and Windows, `max(vCPU, RAM GB / 2)` gives base shape units, not billable units. Apply current platform multipliers and rounding from [Machine shapes](https://namespace.so/docs/architecture/compute/machine-shapes), or use metered usage. Apple Silicon uses fixed shapes. Dollar figures are estimates unless reconciled to billing.
