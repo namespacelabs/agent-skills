@@ -20,6 +20,12 @@
         "longDescription": "Connect to your Namespace workspace to investigate GitHub Actions jobs and container builds, analyze compute usage, identify runner sizing opportunities, and manage Devboxes. Read-and-write access supports creating, starting, stopping, and deleting Devboxes and running commands in them. Skills cover adopting Namespace runners, optimizing CI speed and cost, debugging failed jobs, and working with Devboxes. Sign in to Namespace and authorize the workspace you want to use.",
         "developerName": "Namespace Labs",
         "category": "Developer Tools",
+        "capabilities": [
+          "Investigate GitHub Actions jobs, steps, logs, and runner resource usage",
+          "Inspect container builds and their logs",
+          "Find CI jobs that can move to smaller runners",
+          "Create, start, stop, and delete Devboxes and run commands in them"
+        ],
         "defaultPrompt": [
           "Which Namespace CI jobs could use smaller runners?",
           "Help me investigate a failed Namespace build.",
