@@ -40,7 +40,7 @@ Log regex for failed steps (RE2, case-insensitive):
 Interpretation limits:
 
 - Exit code 137 alone does not prove an out-of-memory kill. Confirm with OOM events or memory at the limit; otherwise report it as possible. OOM events can be empty, and per-second memory samples can miss the final spike, so memory climbing toward the limit just before the kill makes it likely, not confirmed.
-- `cpu_max` is the busiest single vCPU and `cpu_avg` the average across vCPUs. One busy core does not mean the runner is saturated.
+- `cpu_max` is the busiest single vCPU and `cpu_avg` the average across vCPUs. One busy core does not mean the runner is saturated. To tell one busy thread from saturation across vCPUs, request `CPU_BREAKDOWN` in `metricResources` and read the per-vCPU p50, p95, and max in `cpuBreakdown`.
 - Retained step logs can be truncated or missing; that does not prove a step succeeded or did nothing. If `github_job_step_logs_fetch` fails or looks incomplete, use `gh run view <run-id> --log-failed`. If that prints nothing, which happens with older `gh` versions, use `gh api repos/<owner>/<repo>/actions/jobs/<job-id>/logs`.
 - One run is an anecdote. Before blaming a recent change, compare with runs before it.
 
