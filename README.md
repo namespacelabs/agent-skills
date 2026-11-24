@@ -79,4 +79,4 @@ One plugin, `namespace`, at the repository root. Each agent reads its own manife
 | Gemini CLI | `gemini-extension.json`, `GEMINI.md` |
 | MCP Registry | `server.json` |
 
-`node scripts/check-manifests.mjs` checks that the manifests agree on name, version, description, and MCP URL, and that each skill is well formed. CI also runs each vendor's validator. To release, bump `version` in every manifest and `server.json`.
+CI (`.github/workflows/validate.yml`) checks that the manifests agree on name, version, description, and MCP URL, that each skill is well formed, and runs each vendor's validator. The repository root is the plugin folder, so it holds no scripts: Anthropic's directory accepts those only from Verified organizations. To release, bump `version` in every manifest and `server.json`.

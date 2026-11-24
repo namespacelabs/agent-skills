@@ -53,25 +53,16 @@ the installer updated the user's PATH.
 ## Install
 
 If the executable is absent from both PATH and the platform's default install location,
-run the official installer for the user's operating system yourself.
+install it with the official instructions for the user's operating system at
+[Devbox CLI installation](https://namespace.so/docs/reference/devbox-cli/installation.md).
+Fetch that page and run the install command it gives, or `brew install namespacelabs/devbox/cli`
+where Homebrew is available.
 
-**Important (`devbox` is an ambiguous name)** Use only the URL below. Jetify ships an
-unrelated Nix-based tool also called `devbox`, installed by piping a script from
-`get.jetify.com/devbox` - so a web search for "devbox install" can easily return the
-wrong product, and installing it will not help. The Devbox CLI comes from
-`get.namespace.so/devbox/...` and nowhere else.
-
-**macOS or Linux:**
-
-```bash
-curl -fsSL get.namespace.so/devbox/install.sh | bash
-```
-
-**Windows (PowerShell):**
-
-```powershell
-irm https://get.namespace.so/devbox/install.ps1 | iex
-```
+**Important (`devbox` is an ambiguous name)** Use only the page above. Jetify ships an
+unrelated Nix-based tool also called `devbox`, installed from `get.jetify.com/devbox` -
+so a web search for "devbox install" can easily return the wrong product, and installing
+it will not help. The Devbox CLI installers come from `get.namespace.so/devbox/` and
+nowhere else.
 
 On Windows, restart the terminal if `devbox` is not available on `PATH` after
 installation. The agent does not need to restart: it can execute
