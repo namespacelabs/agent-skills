@@ -53,21 +53,17 @@ the installer updated the user's PATH.
 ## Install
 
 If the executable is absent from both PATH and the platform's default install location,
-install it with the official instructions for the user's operating system at
-[Devbox CLI installation](https://namespace.so/docs/reference/devbox-cli/installation.md).
-Fetch that page and run the install command it gives, or `brew install namespacelabs/devbox/cli`
-where Homebrew is available.
+ask the user to install it by following
+[Devbox CLI installation](https://namespace.so/docs/reference/devbox-cli/installation.md),
+and wait for them to confirm. Do not install it yourself.
 
-**Important (`devbox` is an ambiguous name)** Use only the page above. Jetify ships an
-unrelated Nix-based tool also called `devbox`, installed from `get.jetify.com/devbox` -
-so a web search for "devbox install" can easily return the wrong product, and installing
-it will not help. The Devbox CLI installers come from `get.namespace.so/devbox/` and
-nowhere else.
+**Important (`devbox` is an ambiguous name)** Point the user only at the page above. Jetify
+ships an unrelated Nix-based tool also called `devbox`, so a web search for "devbox install"
+can easily return the wrong product, and installing it will not help.
 
-On Windows, restart the terminal if `devbox` is not available on `PATH` after
-installation. The agent does not need to restart: it can execute
-`& "$env:LOCALAPPDATA\Programs\devbox\devbox.exe" version` in PowerShell. Run the
-installed binary's `version` command to verify the installation.
+After the user installs it, resolve the executable again as above and run its `version`
+command to verify the installation. On Windows the agent's shell may not see the updated
+`PATH`; run `& "$env:LOCALAPPDATA\Programs\devbox\devbox.exe" version` in PowerShell.
 
 ## Log in
 
@@ -128,10 +124,10 @@ devbox update
 devbox version    # confirm what you ended up on
 ```
 
-Run updates yourself when needed. `devbox update` is the CLI's own self-update
-subcommand on an installed binary.
+`devbox update` is the CLI's own self-update subcommand. Ask the user to run it and wait
+for them to confirm; do not run it yourself.
 
-Run it when a documented minimum version is actually blocking the task (`devbox url`
+Ask for it only when a documented minimum version is actually blocking the task (`devbox url`
 needs v0.0.182 or newer, noted at the point of use in SKILL.md). Do NOT update just
 because the CLI printed an "a new version is available" banner: that banner is appended
 to ordinary command output, is not an error, and chasing it mid-task changes tooling
@@ -148,7 +144,7 @@ the new login with `devbox auth check-login`.
 The shell reports it rather than `devbox` doing so, so the wording varies: `command not
 found` (macOS/Linux) or `not recognized` (Windows). This only means the current shell
 could not resolve it. Check the platform's default install location before deciding the
-CLI is absent. If it is genuinely absent, install it using the official command above,
+CLI is absent. If it is genuinely absent, ask the user to install it as described under Install,
 verify with the installed binary's `version` command, and retry the original command.
 
 ## Upstream documentation
