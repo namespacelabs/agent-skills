@@ -40,7 +40,7 @@ before doing anything else. Two things are different there:
   even while the CLI works, and acting on that leads to a browser login flow you cannot complete.
   The reference covers the rest, including `--access_mode workspace` for creating sibling boxes.
 
-**Preflight** Resolve `devbox` from PATH or its platform's default install location; use the absolute path if PATH is stale, and install the Devbox CLI yourself only if it is absent. Run the resolved CLI's `auth check-login`; if login is required, run `devbox login`, let the user complete the browser flow, and wait for the command to return. See [references/cli-setup.md](references/cli-setup.md) for exact steps, including session expiry and workspace switching. Do not try to mint or borrow credentials from other tooling.
+**Preflight** Resolve `devbox` from PATH or its platform's default install location; use the absolute path if PATH is stale. If it is absent, ask the user to install the Devbox CLI and wait for them; do not install it yourself. Run the resolved CLI's `auth check-login`; if login is required, run `devbox login`, let the user complete the browser flow, and wait for the command to return. See [references/cli-setup.md](references/cli-setup.md) for exact steps, including session expiry and workspace switching. Do not try to mint or borrow credentials from other tooling.
 
 ## 1. Create a devbox
 
@@ -323,7 +323,7 @@ the marker already exists or is already gone, which makes them safe in traps and
 A marker only holds off the *idle* timeout. `devbox shutdown` and `devbox expire` still stop the
 machine regardless.
 
-**Important** These `devbox url` commands require devbox CLI v0.0.182 or newer. Check with `devbox version`; if the installed version is older, run `devbox update` before using them.
+**Important** These `devbox url` commands require devbox CLI v0.0.182 or newer. Check with `devbox version`; if the installed version is older, ask the user to run `devbox update` before using them.
 
 **Choose who can open `devbox.so` URLs** Each devbox has one access mode shared by all of its exposed URLs:
 
