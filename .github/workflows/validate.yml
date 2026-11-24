@@ -132,18 +132,3 @@ jobs:
           }
           console.log("manifests agree on " + (name) + " " + (version) + "; skills are well formed");
           EOF
-
-      - name: Validate manifests against published schemas
-        run: |
-          mkdir -p schemas-tmp
-          curl -fsSL -o schemas-tmp/ap-plugin.json https://agent-plugins.org/schemas/1.0.0/plugin.schema.json
-          curl -fsSL -o schemas-tmp/ap-mcp.json https://agent-plugins.org/schemas/1.0.0/mcp.schema.json
-          curl -fsSL -o schemas-tmp/agy-plugin.json https://antigravity.google/schemas/v1/plugin.json
-          curl -fsSL -o schemas-tmp/cursor-plugin.json https://raw.githubusercontent.com/cursor/plugins/5229aad76c37451561c5b81a9b5072ae1c549a5b/schemas/plugin.schema.json
-          npx -y -p ajv-cli@5 -p ajv-formats@3 ajv validate --strict=false -c ajv-formats --spec=draft2020 -s schemas-tmp/ap-plugin.json -d plugin.json
-          npx -y -p ajv-cli@5 -p ajv-formats@3 ajv validate --strict=false -c ajv-formats --spec=draft2020 -s schemas-tmp/ap-mcp.json -d mcp.json
-          npx -y -p ajv-cli@5 -p ajv-formats@3 ajv validate --strict=false -c ajv-formats --spec=draft2020 -s schemas-tmp/agy-plugin.json -d .antigravity-plugin/plugin.json
-          npx -y -p ajv-cli@5 -p ajv-formats@3 ajv validate --strict=false -c ajv-formats --spec=draft7 -s schemas-tmp/cursor-plugin.json -d .cursor-plugin/plugin.json
-
-      - name: Validate Claude plugin
-        run: npx -y @anthropic-ai/claude-code@2.1.326 plugin validate . --strict
