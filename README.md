@@ -57,6 +57,14 @@ npx skills add namespacelabs/agent-skills --skill devboxes
 | `optimizing-namespace-ci` | Make CI on Namespace faster, cheaper, or more reliable from measured evidence: runner sizing, caching, repeated setup, Docker builds, queue delays, sharding. References: `evidence.md` (MCP tools, reports, interpretation limits) |
 | `devboxes` | Spin up devboxes to run commands or workloads. References: `cli-setup.md` (install the CLI, log in), `run-tests.md` (test suites, sharding), `inside-a-devbox.md` (running inside a devbox: `boxctl`, task markers) |
 
+## Data and permissions
+
+- **What is sent:** each MCP tool call sends its arguments to `https://mcp.namespace.so/mcp` over HTTPS. Nothing is sent anywhere else, and the plugin collects no telemetry.
+- **What the server reads:** data in the one Namespace workspace you authorize: GitHub Actions jobs and their steps, logs, and resource usage; builds; runner profiles; instances; and Devboxes.
+- **What the server changes:** only Devboxes. It can create, start, stop, and delete them, run commands in them, and expose their URLs. All other tools are read-only. The read-only endpoint, `https://mcp.namespace.so/mcp/readonly`, leaves out the Devbox tools that make changes.
+- **What runs on your machine:** the plugin bundles no executables, hooks, or local MCP server. When you ask for it, the `devboxes` skill can have your agent install the Namespace `devbox` CLI from `get.namespace.so` and run `devbox` commands. The CI skills can have it read your workflow files and run `gh` commands.
+- **Revoking access:** in the [Namespace dashboard](https://cloud.namespace.so), open **Settings** > **Applications** and select **Revoke** next to the agent. Access stops immediately. Namespace handles workspace data under its [privacy policy](https://namespace.so/privacy).
+
 ## Repository layout
 
 One plugin, `namespace`, at the repository root. Each agent reads its own manifest; all share `skills/` and the MCP server.
