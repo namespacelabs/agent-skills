@@ -3,7 +3,15 @@
   "mcpServers": {
     "namespace": {
       "type": "streamable-http",
-      "url": "https://mcp.namespace.so/mcp"
+      "url": "https://mcp.namespace.so/mcp",
+      "extensions": {
+        "com.openai": {
+          "auth": {
+            "type": "oauth",
+            "oidcEnabled": false
+          }
+        }
+      }
     }
   }
 }
