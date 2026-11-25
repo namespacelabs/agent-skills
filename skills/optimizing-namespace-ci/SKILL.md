@@ -15,13 +15,14 @@ To move jobs onto Namespace runners for the first time, use the `adopting-namesp
 
 Investigate the workload the user named, not the whole organization. Use a seven-day baseline unless the user gives another. If the goal is unspecified, weigh feedback time and compute cost without reducing reliability.
 
-Read the relevant workflows, reusable workflows, called scripts, and build and test configuration. Note each job's runner profile or labels, OS and architecture, matrix, dependencies, required checks, concurrency groups, setup and caching steps, artifacts, and Docker builds.
+Read the relevant workflows, reusable workflows, called scripts, and build and test configuration. Note each job's triggers, runner profile or labels, OS and architecture, matrix, dependencies, required checks, concurrency groups, setup and caching steps, artifacts, and Docker builds. Flag the same change validated more than once, such as `push` on pull request branches plus `pull_request` (which tests the merge with the base branch), or a merge queue plus a default-branch push of the same SHA.
 
 ## 2. Establish the baseline
 
-Read [references/evidence.md](references/evidence.md) before collecting or interpreting data. Tool fields and coverage differ in ways that change conclusions.
+Read [references/evidence.md](references/evidence.md) before collecting or interpreting data. Tool fields and coverage differ in ways that change conclusions. Namespace MCP calls can fail transiently; retry a read-only call once or twice, then report the missing evidence.
 
 - Triage with `github_job_summarize`, `github_job_resource_usage_summarize`, and `github_job_optimization_find`, then inspect a few representative normal, slow, and failed runs.
+- Report the failure rate per job: call `github_job_summarize` with `conclusions: [FAILURE]` and with no conclusion filter over the same bounds, with enough `maxResults` that both cover the same jobs. A job that fails consistently is the highest-value fix; hand it to the `debugging-github-actions-jobs` skill before optimizing it.
 - Tie expensive steps to resource time series and step logs. Inspect Docker builds separately: Remote Builders are separate machines.
 - Compare like with like: same repository, workflow, job, matrix variant, shape, platform, and branch, with warm caches. If a source merges a dimension you need, recover it from filtered reports or instance details, or make no shape-specific recommendation.
 - Record the time bounds, sample count, exclusions, and missing data. Missing measurements are not spare capacity.
@@ -38,6 +39,7 @@ Prioritize the measured bottleneck and read the linked guide before proposing ex
 | Repeated toolchain or OS package setup | Profile packages or a custom base image | [Custom base images](https://namespace.so/docs/solutions/github-actions/custom-base-images) |
 | Docker builds | Remote Builders without `docker/setup-buildx-action` or registry cache settings | [Docker builds](https://namespace.so/docs/solutions/github-actions/docker-builds) |
 | Queue delay | Check dependencies, concurrency groups, and workspace limits before asking for more capacity | [Queue time](https://namespace.so/docs/solutions/github-actions/debugging/queue-time) |
+| Redundant triggers validating the same commit | Remove one trigger or narrow `push` branches, after confirming required checks do not depend on that event | — |
 | Slow shard or critical path | Rebalance shards by measured duration | — |
 
 For caching and Docker build edits, follow the `adopting-namespace-runners` skill: it places `nscloud-cache-action` after the toolchain setup step and turns off that step's own cache, including `package-manager-cache: false` on `actions/setup-node` v5 and later.
@@ -48,7 +50,7 @@ Rules that hold across changes:
 - Cache volumes are not keyed like `actions/cache`; check steps that depend on a cache key or `cache-hit` output before replacing it. Keep artifacts that downstream jobs need.
 - Swap, privileged mode, and broader network access are not general performance fixes.
 - Test timings and flaky results alone do not show which tests are safe to skip. Keep required checks and coverage.
-- Lower utilization alone does not prove savings. Keep resource use, billable minutes, and estimated dollars distinct; use current [pricing](https://namespace.so/docs/workspaces/billing-and-limits) and disclose what is missing.
+- Lower utilization alone does not prove savings. Keep resource use, billable minutes, and estimated dollars distinct; use current [pricing](https://namespace.so/docs/workspaces/billing-and-limits) and disclose what is missing. Each instance is billed for at least one minute (see [Machine shapes](https://namespace.so/docs/architecture/compute/machine-shapes)), so a job under a minute on a large shape can usually move to a smaller shape without adding billable minutes.
 
 ## 4. Propose and measure
 
