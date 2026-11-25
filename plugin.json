@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "namespace",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Investigate CI and builds, analyze compute usage, and manage Namespace Devboxes.",
   "author": {
     "name": "Namespace Labs",
@@ -53,39 +53,39 @@
               "description": "Lists recent container image builds with their status and links.",
               "prompt": "Show my 5 most recent container image builds.",
               "tools_triggered": "build_list",
-              "expected_behavior": "Call build_list with maxEntries=5. Report full build references and returned statuses with resource links."
+              "expected_behavior": "Call build_list with maxEntries=5. Report full build references and returned statuses with resource links; if none are returned, say so."
             },
             {
               "description": "Ranks GitHub Actions jobs by run count over the last seven days.",
               "prompt": "Which 5 GitHub Actions jobs ran most often during the last seven days?",
               "tools_triggered": "github_job_summarize",
-              "expected_behavior": "Call github_job_summarize with maxResults=5 and sort=MOST using the seven-day default window. Report returned counts and the actual time range, including any cutoff tie."
+              "expected_behavior": "Call github_job_summarize with maxResults=5 and sort=MOST using the seven-day default window. Report returned counts and the actual time range, including any cutoff tie; if no jobs ran, say so."
             },
             {
               "description": "Finds jobs that can move to smaller runners without resizing anything.",
               "prompt": "Find up to 5 jobs that could use smaller runners based on the last 30 days.",
               "tools_triggered": "github_job_optimization_find",
-              "expected_behavior": "Call github_job_optimization_find with maxEntries=5 using the 30-day default window. Explain recommendations using returned RAM utilization and CPU bottleneck risk; do not resize resources."
+              "expected_behavior": "Call github_job_optimization_find with maxEntries=5 using the 30-day default window. Explain recommendations using returned RAM utilization and CPU bottleneck risk; do not resize resources. If no candidates are returned, say so and summarize the response's explanation of which jobs it excludes."
             },
             {
               "description": "Lists running compute instances with their full identifiers.",
               "prompt": "Show up to 5 running compute instances.",
               "tools_triggered": "instance_list",
-              "expected_behavior": "Call instance_list with lifecycle=RUNNING and maxEntries=5. Report returned status and full instance identifiers; explain that RUNNING can include pending instances."
+              "expected_behavior": "Call instance_list with lifecycle=RUNNING and maxEntries=5. Report returned status and full instance identifiers; explain that RUNNING can include pending instances. If none are running, say so."
             }
           ],
           "negative": [
             {
-              "prompt": "Refund my last Namespace invoice.",
-              "description": "Explain that the tools do not issue refunds and direct the user to Namespace support. Do not call compute or Devbox tools as a substitute."
+              "prompt": "Rerun the failed jobs in my latest GitHub Actions workflow run.",
+              "description": "The Namespace tools can read GitHub Actions jobs, steps, and logs but cannot rerun workflows. Explain that and point to GitHub's Re-run failed jobs button or `gh run rerun --failed`. Do not use devbox_exec or any other tool to rerun it."
             },
             {
-              "prompt": "Change my Namespace account password.",
-              "description": "Explain that these tools do not change account passwords. Do not call Namespace tools or ask for credentials in chat."
+              "prompt": "Raise my workspace's Linux concurrency limit to 10,000 vCPUs.",
+              "description": "workspace_concurrency_get only reads limits; no tool changes them. Explain that limits are changed through Namespace support or the workspace plan, and do not claim the limit changed."
             },
             {
-              "prompt": "Transfer ownership of my Namespace workspace to another company.",
-              "description": "Explain that the tools do not transfer workspace ownership. Do not change infrastructure or claim ownership was transferred."
+              "prompt": "Switch the runner profile my test job uses to a 4 vCPU, 8 GB shape.",
+              "description": "The tools can read runner profiles and suggest smaller shapes but cannot edit profiles or workflows. Explain the change the user would make in the workflow's runs-on labels or the Namespace dashboard, and do not claim anything was changed."
             }
           ]
         }
