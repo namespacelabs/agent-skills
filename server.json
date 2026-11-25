@@ -3,7 +3,7 @@
   "name": "so.namespace/mcp",
   "title": "Namespace",
   "description": "Investigate GitHub Actions jobs and builds, analyze CI usage, and manage Namespace Devboxes.",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "websiteUrl": "https://namespace.so/docs/reference/mcp",
   "repository": {
     "url": "https://github.com/namespacelabs/agent-skills",
