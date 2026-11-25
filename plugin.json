@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "namespace",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Investigate CI and builds, analyze compute usage, and manage Namespace Devboxes.",
   "author": {
     "name": "Namespace Labs",
@@ -17,13 +17,14 @@
       "interface": {
         "displayName": "Namespace",
         "shortDescription": "CI insights and Devboxes",
-        "longDescription": "Connect to your Namespace workspace to investigate GitHub Actions jobs and container builds, analyze compute usage, identify runner sizing opportunities, and manage Devboxes. Read-and-write access supports creating, starting, stopping, and deleting Devboxes and running commands in them. Skills cover adopting Namespace runners, optimizing CI speed and cost, debugging failed jobs, and working with Devboxes. Sign in to Namespace and authorize the workspace you want to use.",
+        "longDescription": "Connect to your Namespace workspace to investigate GitHub Actions jobs and container builds, analyze compute usage, identify runner sizing opportunities, check workspace concurrency and Devbox limits, and manage Devboxes. Read-and-write access supports creating, starting, stopping, and deleting Devboxes and running commands in them. Skills cover adopting Namespace runners, optimizing CI speed and cost, debugging failed jobs, and working with Devboxes. Sign in to Namespace and authorize the workspace you want to use.",
         "developerName": "Namespace Labs",
         "category": "Developer Tools",
         "capabilities": [
           "Investigate GitHub Actions jobs, steps, logs, and runner resource usage",
           "Inspect container builds and their logs",
           "Find CI jobs that can move to smaller runners",
+          "Check workspace concurrency and Devbox limits",
           "Create, start, stop, and delete Devboxes and run commands in them"
         ],
         "defaultPrompt": [

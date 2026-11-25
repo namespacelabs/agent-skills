@@ -79,7 +79,7 @@ Linux sizes: `s` (4 vCPU / 8 GB), `m` (8 vCPU / 16 GB), `l` (16 vCPU / 32 GB), `
 
 **Overlap creation with local prep** `devbox create` blocks until the machine is ready, which takes tens of seconds. Use that time: run `devbox create` as a background task, then immediately compute any local git diff and write the setup and run scripts locally. Once creation completes, upload and execute. This eliminates idle waiting.
 
-**Note** Devbox creation might fail due to Namespace plan limits on resource tiers or instance counts. If this happens: **PROMPT THE USER BEFORE PROCEEDING** run `devbox list` and ask to expire or reuse any of the available devboxes, then retry; As a last resort, consolidate work across fewer devboxes rather than blocking.
+**Note** Devbox creation might fail due to Namespace plan limits on resource tiers or instance counts. If this happens: **PROMPT THE USER BEFORE PROCEEDING** run `devbox list` and ask to delete or reuse any of the available devboxes, then retry; As a last resort, consolidate work across fewer devboxes rather than blocking. If the Namespace MCP server is connected, `devbox_usage_get` shows how many devboxes exist in the workspace and for the user against each limit. Stopped devboxes count until they are deleted, so stopping one does not free a slot.
 
 For test or script runs that benefit from sharding across multiple devboxes, see [references/run-tests.md](references/run-tests.md).
 
