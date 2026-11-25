@@ -11,7 +11,7 @@
       "name": "namespace",
       "source": "./",
       "description": "Investigate CI and builds, analyze compute usage, and manage Namespace Devboxes.",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "author": {
         "name": "Namespace Labs",
         "email": "support@namespace.so",

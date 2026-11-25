@@ -15,19 +15,23 @@ Sources: [Namespace MCP](https://namespace.so/docs/reference/mcp), [nsc instance
 
 - `github_job_list` and `github_job_describe`: identity, timestamps, workflow run, runner and instance, and profile. Request the fields you need and follow cursors.
 - `github_job_step_list`, `github_job_step_logs_fetch`, `github_job_resource_usage_fetch`: steps, retained logs, and CPU, I/O wait, memory, and storage series. Missing or truncated step logs do not prove a step succeeded or did no work; use `gh run view <run-id> --log-failed` for complete logs.
-- `cpu_avg` is the average across vCPUs and `cpu_max` the busiest vCPU, both 0 to 100.
+- `cpu_avg` is the average across vCPUs and `cpu_max` the busiest vCPU, both 0 to 100. `cpu_avg` times the vCPU count approximates how many vCPUs were busy.
+- With `CPU_BREAKDOWN` in `metricResources`, `cpuBreakdown` gives each vCPU's p50, p95, and max over the range. A few busy vCPUs with the rest idle points to one thread that the kernel moves between cores; high p50 on every vCPU means the runner is saturated; high p95 with low p50 everywhere means a short parallel phase.
 - `github_job_instance_describe` and `instance_oom_events_fetch`: allocation, shutdown reasons, and OOM events. OOM events can be empty, and per-second samples can miss a final memory spike.
 - `build_list_by_origin`, `build_describe`, `build_steps_get`, `build_step_logs_fetch`: Docker builds started by a job. Runner metrics do not describe Remote Builder work.
+
+## Workspace capacity
+
+`workspace_concurrency_get` (CLI: `nsc workspace concurrency -o json`) returns current committed instances, vCPU, and memory against each concurrency pool's limit. It is a point-in-time snapshot of allocated capacity, not utilization, so it explains jobs waiting now but not an earlier queue delay. Pools overlap; report them separately and never sum them. Totals cover GitHub Actions runners, named builders, and Bazel workers without a per-workload breakdown, and exclude Devboxes. An empty list means no concurrency limits are configured.
 
 ## CLI and reports
 
 ```bash
 nsc github job list --repository <owner/repo> --since 168h -o json
 nsc github job describe <job-id> -o json
-nsc workspace concurrency -o json
 ```
 
-`nsc github job list` returns at most 50 jobs by default (`--max_entries`); a time filter does not make it a complete baseline. `nsc workspace concurrency` is a point-in-time snapshot of allocated capacity and limits, not utilization, and cannot explain an earlier queue delay. Its pools overlap; report them separately.
+`nsc github job list` returns at most 50 jobs by default (`--max_entries`); a time filter does not make it a complete baseline.
 
 For population analysis, export a report filtered to the workload:
 
