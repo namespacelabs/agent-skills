@@ -47,7 +47,7 @@
               "description": "Lists the most recently used Devboxes without inventing records.",
               "prompt": "Show my 10 most recently used Devboxes.",
               "tools_triggered": "devbox_list",
-              "expected_behavior": "Call devbox_list with maxEntries=10. Report returned names, full IDs, and available metadata in returned order; handle an empty result explicitly."
+              "expected_behavior": "Call devbox_list with maxEntries=10. Report the returned Devboxes by name in returned order with when each was last used; handle an empty result explicitly."
             },
             {
               "description": "Lists recent container image builds with their status and links.",
@@ -71,21 +71,21 @@
               "description": "Lists running compute instances with their full identifiers.",
               "prompt": "Show up to 5 running compute instances.",
               "tools_triggered": "instance_list",
-              "expected_behavior": "Call instance_list with lifecycle=RUNNING and maxEntries=5. Report returned status and full instance identifiers; explain that RUNNING can include pending instances. If none are running, say so."
+              "expected_behavior": "Call instance_list with lifecycle=RUNNING and maxEntries=5. Report the returned instances with full instance IDs and links, and say when the list is capped. If none are running, say so."
             }
           ],
           "negative": [
             {
-              "prompt": "Rerun the failed jobs in my latest GitHub Actions workflow run.",
-              "description": "Do not rerun workflows: the tools only read GitHub Actions jobs and logs. Explain how to rerun failed jobs in GitHub."
+              "prompt": "Create a new runner profile named small-tests with 4 vCPU and 8 GB of RAM.",
+              "description": "Do not create runner profiles: the tools only read them. Explain that profiles are created in the Namespace dashboard."
             },
             {
               "prompt": "Raise my workspace's Linux concurrency limit to 10,000 vCPUs.",
               "description": "Do not change concurrency limits: the tools only read them. Explain that limits are changed through Namespace support."
             },
             {
-              "prompt": "Switch the runner profile my test job uses to a 4 vCPU, 8 GB shape.",
-              "description": "Do not edit runner profiles or workflows: the tools only read them. Explain the runs-on change the user can make."
+              "prompt": "Delete all my container image builds older than 30 days.",
+              "description": "Do not delete builds: the tools only list and inspect them. Explain that no builds were deleted."
             }
           ]
         }
